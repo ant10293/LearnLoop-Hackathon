@@ -1,0 +1,150 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/verification/engine.py
+# base-sha256: 061a4a3e957c7b9fe3b37c5620e91fda01a1d84707bc56a2fcb20f8dae0416d8
+# result-sha256: 7df6bfe49ff4609afa177a337e512fc290f762d4cb94e4ee3041a391b078836a
+@@ -11,1 +11,1 @@
++from app.verification.predicates import apply_human, apply_reinspection, judge_predicate
+@@ -37,1 +37,1 @@
++    "Order is checked only for necessary physical dependencies and orders set by a reviewer."
+@@ -50,0 +51,3 @@
++    human_observations: list[dict] | None = None,
++    reinspection_findings: list[dict] | None = None,
++    appearance_seen: set[str] | None = None,
+@@ -52,0 +56,2 @@
++    removed = [step.step_id for step in spec.steps if step.removed]
++    spec = spec.model_copy(update={"steps": [step for step in spec.steps if not step.removed]})
+@@ -58,2 +63,2 @@
++    machine = {
++        step.step_id: _judge_step(step, document, assignments, aligned, execution_video_id, appearance_seen)
+@@ -61,0 +67,20 @@
++    baseline = {step.step_id: _machine_verdict(step, machine, aligned) for step in spec.steps}
++    if reinspection_findings:
++        machine = apply_reinspection(spec, machine, reinspection_findings, execution_video_id)
++    records: dict[str, list[dict]] = {}
++    for record in human_observations or []:
++        records.setdefault(record["step_id"], []).append(record)
++    judgements = {
++        step.step_id: apply_human(
++            step.step_id,
++            [item.predicate_id for item in machine[step.step_id] if _is_required(step, item)],
++            [item.model_copy(deep=True) for item in machine[step.step_id]],
++            records[step.step_id],
++            document,
++            execution_video_id,
++        )
++        if step.step_id in records
++        else machine[step.step_id]
++        for step in spec.steps
++    }
++    names = {step.step_id: step.name for step in spec.steps}
+@@ -71,0 +97,3 @@
++            baseline[step.step_id],
++            aligned,
++            names,
+@@ -90,0 +119,2 @@
++        "removed_steps": removed,
++        "human_assisted": any(item.basis == "human_confirmed" for item in steps),
+@@ -94,1 +124,6 @@
++def _machine_verdict(step: TemplateStep, machine: dict[str, list[PredicateJudgement]], aligned: dict[str, dict]) -> str:
++    required = [item for item in machine[step.step_id] if _is_required(step, item)]
++    return _decide(step, required, _order(step, required, machine, aligned)[0])[0]
++
++
++def _judge_step(step: TemplateStep, document, assignments, aligned, video_id: str, appearance_seen: set[str] | None = None) -> list[PredicateJudgement]:
+@@ -99,1 +134,1 @@
++        judge_predicate(predicate, document, by_role, video_id=video_id, attempted=attempted, appearance_seen=appearance_seen)
+@@ -112,0 +148,3 @@
++    machine_verdict: str = "",
++    aligned: dict[str, dict] | None = None,
++    names: dict[str, str] | None = None,
+@@ -115,2 +153,2 @@
++    required = [item for item in judgements if item.human or _is_required(step, item)]
++    order, late = _order(step, required, all_judgements, aligned or {})
+@@ -118,2 +156,2 @@
++    order_note = _order_note(late, names or {}) if order == "violated" else ""
++    explanation = order_note or _explanation(step, required, order, verdict)
+@@ -145,1 +183,1 @@
++        observed=order_note or _observed(required, verdict),
+@@ -167,1 +205,2 @@
++        machine_verdict=machine_verdict or verdict,
++        basis=_basis(required, verdict),
+@@ -170,0 +210,12 @@
++def _basis(judgements: list[PredicateJudgement], verdict: str) -> str:
++    if any(item.human for item in judgements):
++        return "human_confirmed"
++    # A failure is decided by its failing conditions, not by a second look that passed another one.
++    deciding = [item for item in judgements if item.status == "fail"] if verdict == "FAIL" else judgements
++    if verdict in {"PASS", "FAIL"} and any(item.reinspected and item.status != "cannot" for item in deciding):
++        return "model_reinspection"
++    if verdict == "FAIL" and any(evidence.evidence_class == "NOT_OBSERVED" for item in deciding for evidence in item.evidence):
++        return "not_observed"
++    return "model_evidence" if verdict in {"PASS", "FAIL"} else "none"
++
++
+@@ -176,1 +227,6 @@
++def _completion_times(judgements: list[PredicateJudgement], alignment: dict | None) -> list[float]:
++    """When a step's result was reached: the onsets of the states that show it, or, when no state carries one
++    (a condition read only from end frames, or decided by a second look), the end of the recognized action
++    the step was matched to. A step with a failing condition or an unfinished action has no time."""
++    if any(item.status == "fail" for item in judgements):
++        return []
+@@ -177,0 +234,20 @@
++    if onsets:
++        return onsets
++    alignment = alignment or {}
++    if alignment.get("status") != "matched" or alignment.get("outcome") in {"attempted", "failed"}:
++        return []
++    end = alignment.get("end")
++    if end is None:
++        end = alignment.get("time")
++    return [float(end)] if end is not None else []
++
++
++def _order(
++    step: TemplateStep,
++    judgements: list[PredicateJudgement],
++    all_judgements,
++    aligned: dict[str, dict] | None = None,
++) -> tuple[str | None, list[tuple[str, float, float]]]:
++    """Whether an order-constraining prerequisite was completed after this step, and which ones were."""
++    aligned = aligned or {}
++    onsets = _completion_times(judgements, aligned.get(step.step_id))
+@@ -179,1 +255,1 @@
++        return None, []
+@@ -182,0 +259,1 @@
++    late: list[tuple[str, float, float]] = []
+@@ -186,6 +263,1 @@
++        pred_onsets = _completion_times(all_judgements.get(dep.step_id, []), aligned.get(dep.step_id))
+@@ -199,0 +272,1 @@
++                late.append((dep.step_id, pred_time, earliest))
+@@ -201,1 +274,1 @@
++        return "violated", late
+@@ -203,2 +276,13 @@
++        return "corrected", []
++    return None, []
++
++
++def _order_note(late: list[tuple[str, float, float]], names: dict[str, str]) -> str:
++    if not late:
++        return "A required prerequisite was completed after this step's supporting evidence."
++    parts = [f"\"{names.get(step_id, step_id)}\" at {pred:.1f}s" for step_id, pred, _ in late]
++    done = late[0][2]
++    return (
++        f"Done out of order: this step was completed at {done:.1f}s, before its prerequisite "
++        f"{' and '.join(parts)}. The procedure requires the prerequisite first."
++    )
+@@ -260,0 +345,8 @@
++_RELATION_WORDS = {
++    "attached": "attached to",
++    "supported_by": "resting on",
++    "left_of": "left of",
++    "right_of": "right of",
++}
++
++
+@@ -269,1 +361,1 @@
++            parts.append(f"{subject} {_RELATION_WORDS.get(predicate.relation, predicate.relation.replace('_', ' '))} {target}".strip())
+@@ -272,1 +364,1 @@
++    return "; ".join(parts) or step.completion_text or step.expected_action or step.name
+@@ -293,1 +385,1 @@
++        return "A required prerequisite was completed after this step's supporting evidence."

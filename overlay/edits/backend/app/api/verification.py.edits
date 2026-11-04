@@ -1,0 +1,29 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/api/verification.py
+# base-sha256: a51fc273c4c596141e0d0f74f5410bf7b2a23a9b7e571c8d46fb6ec53455661b
+# result-sha256: b2d94b800373c7d93dd44621511b57d61f6c46569ce01db4f1ac967ae0c408fb
+@@ -21,7 +20,0 @@
+@@ -33,0 +27,5 @@
++    expected_action: str | None = None
++    completion_text: str | None = None
++    removed: bool | None = None
++    completion_conditions: list[dict] | None = None
++    order_after: list[str] | None = None
+@@ -49,18 +47,5 @@
++class HumanObservationBody(BaseModel):
++    answer: Literal["installed", "not_installed", "cannot_determine"]
++    timestamp: float
++    reviewer: str = ""
++    predicate_id: str = ""
+@@ -68,21 +52,0 @@
+@@ -100,24 +63,0 @@
+@@ -134,5 +73,0 @@
+@@ -144,5 +78,0 @@
+@@ -154,12 +84,2 @@
++@router.post("/api/verifications/{verification_id}/steps/{step_id}/observations")
++def human_observation(
+@@ -168,1 +88,1 @@
++    payload: HumanObservationBody,
+@@ -171,1 +91,1 @@
++    return _call(lambda: store.record_observation(session, verification_id, step_id, payload.model_dump()))
+@@ -174,20 +93,0 @@

@@ -1,0 +1,304 @@
+# LearnLoop hackathon edit script v1
+# path: backend/tests/test_verification_cases.py
+# base-sha256: 764e5a88d8da7449ff06d110e2dabc044c396876a59a21ba65478ae9205143e4
+# result-sha256: f57c5f8a6b12645486cf14a448e1c5c7f456f7980746f49d3ac12719cdcd5128
+@@ -11,1 +10,0 @@
+@@ -12,0 +12,2 @@
++from app.verification.roles import map_roles
++from app.verification.schema import LearnedTemplate, ObjectRole
+@@ -18,0 +20,1 @@
++    dep,
+@@ -169,1 +171,17 @@
++    twins = verify_execution(learn_template(tie_demo, promote_supported=True, accept=True), tie_execution)
++    twin_roles = [role for role in twins["roles"] if role["label"].startswith("pin")]
++    assert [role["label"] for role in twin_roles] == ["pin 1", "pin 2"]
++    assert all(role["status"] == "assigned" for role in twin_roles), twin_roles
++    assert twin_roles[0]["object_local_ids"] != twin_roles[1]["object_local_ids"]
++    assert all(len(role["hypotheses"]) >= 2 for role in twin_roles)
++    assert twins["overall"] == "PASS"
++
++    # One learned pin and two matching instances: nothing says which one it is.
++    one_pin = document(
++        objects=[obj("D_a", "pin", "metal pin", "short metal pin"), obj("D_plate", "plate", "base plate", "flat plate")],
++        observations=[obs("D_a", 8), obs("D_plate", 8)],
++        relationships=[rel("D_a", "D_plate", "touching", 2, 20)],
++        actions=[action("A_a", "place", 0, 2, ["D_a", "D_plate"])],
++        steps=[step("step_a", "Place pin", ["D_a", "D_plate"], ["A_a"], 0, 2, "pin touching plate")],
++    )
++    tie = verify_execution(learn_template(one_pin, promote_supported=True, accept=True), tie_execution)
+@@ -191,13 +208,0 @@
+@@ -282,25 +286,0 @@
+@@ -389,0 +370,48 @@
++def _new_project(name: str) -> str:
++    from app.db import SessionLocal
++    from app.models.media import Project
++
++    session = SessionLocal()
++    try:
++        project = Project(name=name, description="learnloop_procedure")
++        session.add(project)
++        session.commit()
++        return project.id
++    finally:
++        session.close()
++
++
++def _store(action):
++    from app.db import SessionLocal
++    from app.services import verification_store as store
++
++    session = SessionLocal()
++    try:
++        return action(store, session)
++    finally:
++        session.close()
++
++
++def _learn(project_id: str, run_id: str, **options) -> dict:
++    return _store(lambda store, session: store.create_template(session, project_id, run_id, **options))
++
++
++def _verify(template_id: str, run_id: str) -> dict:
++    return _store(
++        lambda store, session: store.start_verification(
++            session, template_id, {"execution_run_id": run_id, "strategy": "hybrid"}
++        )
++    )
++
++
++def test_a_procedure_can_be_learned_and_listed(client):
++    project_id = _new_project("Same day")
++    demo_run = _install(project_id, "same-day-demo.mp4", assembly_demo())
++    learned = _learn(project_id, demo_run, name="Same day procedure")
++    listed = _store(lambda store, session: store.list_templates(session, project_id))
++    assert [row["id"] for row in listed] == [learned["id"]]
++    assert _store(lambda store, session: store.list_verifications(session, project_id)) == []
++    with pytest.raises(LookupError):
++        _store(lambda store, session: store.list_templates(session, "missing-project"))
++
++
+@@ -391,1 +419,1 @@
++    project_id = _new_project("Verify")
+@@ -394,13 +422,4 @@
++    created = _learn(project_id, demo_run, promote_supported=True, accept=True, name="Joined plates")
++    template_id = created["id"]
++    assert created["version"] == 1
++    body = _verify(template_id, execution_run)
+@@ -413,0 +433,1 @@
++    assert exported.json()["evidence"]
+@@ -428,3 +448,215 @@
++
++
++def _pin_and_cap_demo(category: str) -> AnalysisDocument:
++    return document(
++        objects=[
++            obj("D_pin", "pin", "short shaft", "metal pin"),
++            obj("D_block", "block", "base block", "square block"),
++            obj("D_cap", "cap", "cover", "round cap"),
++        ],
++        observations=[obs("D_pin", 12), obs("D_block", 12), obs("D_cap", 12)],
++        relationships=[rel("D_pin", "D_block", "inside", 4, 30), rel("D_cap", "D_pin", "attached", 8, 30)],
++        actions=[
++            action("A_ready", "insert", 0, 5, ["D_pin", "D_block"]),
++            action("A_lock", "attach", 5, 10, ["D_cap", "D_pin"]),
++        ],
++        steps=[
++            step("step_ready", "Seat pin", ["D_pin", "D_block"], ["A_ready"], 0, 5, "pin inside block"),
++            step("step_lock", "Lock cap", ["D_cap", "D_pin"], ["A_lock"], 5, 10, "cap attached to pin"),
++        ],
++        dependencies=[dep("step_ready", "step_lock", category)],
++    )
++
++
++def _cap_first_execution() -> AnalysisDocument:
++    return document(
++        objects=[
++            obj("E_pin", "pin", "short shaft", "metal pin"),
++            obj("E_block", "block", "base block", "square block"),
++            obj("E_cap", "cap", "cover", "round cap"),
++        ],
++        observations=[obs("E_pin", 20), obs("E_block", 20), obs("E_cap", 20)],
++        relationships=[rel("E_cap", "E_pin", "attached", 2, 30), rel("E_pin", "E_block", "inside", 12, 30)],
++        actions=[
++            action("X_lock", "attach", 2, 6, ["E_cap", "E_pin"]),
++            action("X_ready", "insert", 12, 18, ["E_pin", "E_block"]),
++        ],
++    )
++
++
++def _order_template(client, category: str) -> tuple[str, str]:
++    project_id = _new_project("Order")
++    demo_run = _install(project_id, "demo.mp4", _pin_and_cap_demo(category))
++    execution_run = _install(project_id, "execution.mp4", _cap_first_execution())
++    return _learn(project_id, demo_run, promote_supported=True, accept=True)["id"], execution_run
++
++
++def _lock_result(client, template_id: str, execution_run: str) -> dict:
++    return _steps(_verify(template_id, execution_run)["report"])["step_lock"]
++
++
++def test_reviewer_can_require_an_order_the_model_did_not(client):
++    template_id, execution_run = _order_template(client, "observed_temporal")
++    assert _lock_result(client, template_id, execution_run)["error_category"] != "INCORRECT_ORDER"
++    revised = client.patch(
++        f"/api/workflow-templates/{template_id}",
++        json={"steps": [{"step_id": "step_lock", "order_after": ["step_ready"]}]},
++    )
++    assert revised.status_code == 200, revised.text
++    body = revised.json()
++    assert body["acceptance_status"] == "draft"
++    lock = next(item for item in body["document"]["steps"] if item["step_id"] == "step_lock")
++    assert lock["human_edited"] == ["order_after"]
++    assert lock["dependencies"][0]["origin"] == "human"
++    assert _lock_result(client, body["id"], execution_run)["error_category"] == "INCORRECT_ORDER"
++    original = client.get(f"/api/workflow-templates/{template_id}").json()
++    kept = next(item for item in original["document"]["steps"] if item["step_id"] == "step_lock")
++    assert kept["dependencies"][0]["constrains_order"] is False
++
++
++def test_reviewer_can_lift_an_order_the_model_required(client):
++    template_id, execution_run = _order_template(client, "necessary_physical")
++    assert _lock_result(client, template_id, execution_run)["error_category"] == "INCORRECT_ORDER"
++    revised = client.patch(
++        f"/api/workflow-templates/{template_id}",
++        json={"steps": [{"step_id": "step_lock", "order_after": []}]},
++    )
++    assert revised.status_code == 200, revised.text
++    lock = _lock_result(client, revised.json()["id"], execution_run)
++    assert lock["verdict"] == "PASS", lock
++
++
++def test_reviewer_can_add_an_order_between_unlinked_steps(client):
++    template_id, _execution_run = _order_template(client, "observed_temporal")
++    revised = client.patch(
++        f"/api/workflow-templates/{template_id}",
++        json={"steps": [{"step_id": "step_ready", "order_after": ["step_lock"]}]},
++    )
++    assert revised.status_code == 200, revised.text
++    ready = next(item for item in revised.json()["document"]["steps"] if item["step_id"] == "step_ready")
++    assert ready["dependencies"][0]["category"] == "human_specified"
++    assert ready["dependencies"][0]["constrains_order"] is True
++
++
++@pytest.mark.parametrize(
++    "steps",
++    [
++        [{"step_id": "step_lock", "order_after": ["step_lock"]}],
++        [{"step_id": "step_lock", "order_after": ["step_missing"]}],
++        [
++            {"step_id": "step_lock", "order_after": ["step_ready"]},
++            {"step_id": "step_ready", "order_after": ["step_lock"]},
++        ],
++    ],
++)
++def test_impossible_step_orders_are_refused(client, steps):
++    template_id, _execution_run = _order_template(client, "observed_temporal")
++    revised = client.patch(f"/api/workflow-templates/{template_id}", json={"steps": steps})
++    assert 400 <= revised.status_code < 500, revised.text
++    assert client.get(f"/api/workflow-templates/{template_id}").json()["version"] == 1
++
++
++def _hidden_insertion_answer(pin_relation: str = "attached") -> AnalysisDocument:
++    """Hand occlusion on the insertions, and an earlier arrangement that stays true to the end."""
++    parts = [("clear", "clear piece"), ("body", "gray body"), ("fork", "black fork"), ("wheel_a", "wheel"), ("wheel_b", "wheel"), ("pin", "white pin")]
++    return document(
++        objects=[obj(local_id, label, label, label) for local_id, label in parts],
++        observations=[obs(local_id, 20) for local_id, _label in parts],
++        relationships=[
++            rel("clear", "body", "attached", 3, 20, "INFERRED"),
++            rel("fork", "body", "attached", 6, 20),
++            rel("wheel_a", "fork", "attached", 9, 20),
++            rel("wheel_b", "fork", "attached", 11, 20),
++            rel("pin", "fork", pin_relation, 16, 20, "INFERRED"),
++        ],
++        transitions=[
++            {**transition("clear", "separate", "inserted", 3), "evidence": rel("clear", "body", "attached", 3, 20, "INFERRED")["evidence"]},
++            {**transition("pin", "separate", "inserted", 16), "evidence": rel("pin", "fork", "attached", 16, 20, "INFERRED")["evidence"]},
++        ],
++        steps=[
++            step("step_clear", "Insert clear piece", ["clear", "body"], [], 1, 4, "seated"),
++            step("step_fork", "Attach fork", ["fork", "body"], [], 4, 7, "joined"),
++            step("step_wheel_a", "Attach first wheel", ["wheel_a", "fork", "body"], [], 7, 10, "joined"),
++            step("step_wheel_b", "Attach second wheel", ["wheel_b", "fork", "body"], [], 10, 13, "joined"),
++            step("step_pin", "Insert pin", ["pin", "body", "fork"], [], 15, 17, "seated"),
++        ],
++    )
++
++
++def _required_checks(template, step_id: str) -> list[tuple[str, str, str]]:
++    found = next(item for item in template.steps if item.step_id == step_id)
++    return [
++        (item.subject_role, item.relation, item.target_role)
++        for item in found.completion_conditions
++        if item.evidence_requirement == "required"
++    ]
++
++
++def test_each_step_checks_only_the_arrangement_it_achieved():
++    template = learn_template(_hidden_insertion_answer(), results_first=True)
++    assert _required_checks(template, "step_pin") == [("role:pin", "inside", "role:fork")]
++    assert _required_checks(template, "step_wheel_a") == [("role:wheel_a", "attached", "role:fork")]
++
++
++def test_a_hand_hidden_insertion_gets_a_check_but_is_not_made_required():
++    template = learn_template(_hidden_insertion_answer(), results_first=True, promote_supported=True)
++    assert _required_checks(template, "step_clear") == [("role:clear", "inside", "role:body")]
++    assert next(item for item in template.steps if item.step_id == "step_clear").required is False
++
++
++def test_identical_parts_are_numbered_and_do_not_tie_forever():
++    answer = _hidden_insertion_answer()
++    template = learn_template(answer, results_first=True)
++    labels = {role.role_id: role.label for role in template.roles}
++    assert (labels["role:wheel_a"], labels["role:wheel_b"]) == ("wheel 1", "wheel 2")
++    mapped = {item.role_id: item for item in map_roles(template, answer)}
++    assert mapped["role:wheel_a"].status == mapped["role:wheel_b"].status == "assigned"
++    assert mapped["role:wheel_a"].object_local_ids != mapped["role:wheel_b"].object_local_ids
++
++
++def test_a_seated_part_reported_as_attached_is_not_a_wrong_placement():
++    template = learn_template(_hidden_insertion_answer(), results_first=True)
++    attempt = _hidden_insertion_answer()
++    for item in attempt.relationships:
++        item.evidence.classification = "DIRECTLY_OBSERVED"
++    report = verify_execution(template, attempt)
++    pin = next(item for item in report["steps"] if item["step_id"] == "step_pin")
++    assert pin["verdict"] == "PASS"
++
++
++def _cylinder_role(reference_area=None):
++    return LearnedTemplate(
++        roles=[
++            ObjectRole(
++                role_id="role:cylinder",
++                label="white short cylinder",
++                description="short white part with a rounded end",
++                visual_characteristics="small white cylinder",
++                relation_signature=["inside|white body"],
++                state_labels=["inserted"],
++                reference_area=reference_area,
++            )
++        ]
++    )
++
++
++def _loose_cylinder(observations=None):
++    return document(
++        objects=[obj("obj_5", "white short cylinder", "short white part on the table", "small white cylinder")],
++        observations=observations or [],
++    )
++
++
++def test_a_missing_size_measurement_does_not_lower_a_role_score():
++    mapped = map_roles(_cylinder_role(), _loose_cylinder())[0]
++    assert mapped.status == "assigned"
++    assert "size" not in mapped.hypotheses[0].features
++    # The part is loose, so it shares none of the learned relations. That is not evidence it is another part.
++    assert mapped.score == pytest.approx(0.6852, abs=0.03)
++
++
++def test_a_measured_size_mismatch_still_lowers_a_role_score():
++    unmeasured = map_roles(_cylinder_role(), _loose_cylinder())[0].hypotheses[0].score
++    measured = map_roles(_cylinder_role(0.5), _loose_cylinder([obs("obj_5", 1.0, area=0.04)]))[0].hypotheses[0]
++    assert 0 < measured.features["size"] < 0.2
++    assert measured.score < unmeasured

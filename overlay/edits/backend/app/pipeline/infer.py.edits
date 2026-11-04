@@ -1,0 +1,69 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/pipeline/infer.py
+# base-sha256: cfef0d71a00b7452b3c6a56af4bea92d3c2a094f190f78e176080b48ff7ab356
+# result-sha256: 235d0a94a65defe227a09ac35f54da2293cd8e4bad77d5bf5c0f5cf3ae16c0ab
+@@ -5,0 +6,1 @@
++import logging
+@@ -8,1 +8,0 @@
+@@ -10,13 +10,10 @@
++from app.models.media import VideoAsset
++from app.models.runs import AnalysisRun
++from app.providers.model_list import capabilities_for
++from app.providers.types import (
++    UnsupportedMode,
++)
++from app.schemas.analysis import (
++    AnalysisDocument,
++    Coverage,
++)
+@@ -24,0 +22,2 @@
++logger = logging.getLogger(__name__)
++
+@@ -53,9 +52,2 @@
++SEMANTIC_STAGES = ("scene_analysis", "action_analysis", "state_tracking", "workflow", "ambiguity", "evidence_fusion")
++SEMANTIC_LISTS = ("actions", "states", "transitions", "relationships", "workflow_steps", "dependencies")
+@@ -64,4 +56,3 @@
++def save_semantic_raw(run_id: str, document: AnalysisDocument) -> None:
++    """The scene call's parsed output, before any repair. Replaced on retry."""
++    path = data_path("runs", run_id, "semantic_raw.json")
+@@ -69,1 +60,1 @@
++    path.write_text(document.model_dump_json(indent=2))
+@@ -72,26 +63,4 @@
++def _video_file(video: VideoAsset, run: AnalysisRun | None = None):
++    """The requested-interval subclip when preprocess cut one, else the playback mp4 or the original."""
++    if run is not None:
++        from app.pipeline.clip_time import load_transform, subclip_path
+@@ -99,15 +68,17 @@
++        if load_transform(run.id) is not None:
++            return subclip_path(run.id)
++    return resolve_stored(video.proxy_path or video.stored_path)
++
++
++def _require_video_length(run: AnalysisRun, video: VideoAsset) -> None:
++    limit = capabilities_for(run.provider_id, run.model_id).max_video_seconds
++    duration = float(video.duration_sec or 0)
++    from app.pipeline.clip_time import load_transform
++
++    transform = load_transform(run.id) if getattr(run, "id", None) else None
++    if transform is not None:
++        duration = float(transform.get("duration") or duration)
++    if limit and duration > float(limit):
++        raise UnsupportedMode(
++            f"{run.model_id} accepts at most {limit:g} seconds of video. "
++            f"This recording is {duration:.1f} seconds. The file was not replaced with frames."
+@@ -115,1 +86,8 @@
++
++
++def _note_video_coverage(coverage: Coverage, *, timeline_frames: int | None = None) -> None:
++    coverage.modality = "native_video"
++    coverage.native_video_submitted = True
++    if timeline_frames is None:
++        coverage.frames_submitted = 0
++        extra = "The model receives the video file. Preview frames stay in the inspector."
+@@ -117,160 +95,5 @@
++        coverage.frames_submitted = timeline_frames
++        extra = "The video file is sent with the timeline frames so the whole recording is visible."
++    note = coverage.temporal_coverage_note or ""
++    if "video file" not in note.lower():
++        coverage.temporal_coverage_note = (note + " " + extra).strip()
+@@ -284,112 +106,0 @@

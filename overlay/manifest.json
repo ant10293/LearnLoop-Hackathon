@@ -1,0 +1,1218 @@
+{
+  "counts": {
+    "add": 71,
+    "delete": 108,
+    "edit": 66,
+    "keep": 38
+  },
+  "deleted": {
+    "ARCHITECTURE.md": "93d9c40de726ee141fa903653c2685bb8452082cda2192a221bfbc2f6243754c",
+    "AUDIO.md": "48c15f07e0b09775abe37ad532f830c6429345e65a2abbe2b8414dc84d7e9c3e",
+    "DATA_MODEL.md": "bb6d90c561fc8e05d63cfdf744c71c3ac81c388d580ff02fd1f899b7aada7dce",
+    "DEVELOPMENT.md": "574798bd6349b1aea48c41d7e11bae24521a81cdd6cd647061d9857804db4a6b",
+    "IMPLEMENTATION_PROGRESS.md": "c72cda3382d59e306528b82c34eb8d0544c4de8b03af4e47326d8e3f53794178",
+    "PROVIDERS.md": "84300e24446d2dcb1d3ad991fdaea3c5e2df5a552fd70554b04ab1fad78e6bee",
+    "RESEARCH_METHODOLOGY.md": "f49cc27d309d280863616f2b7a1ee4d70b1f3b40cc739ee171d65e9e02fc16ef",
+    "TASKS.md": "23c5463590c60276017a31efe55a0ba3ffa93ca8c368db8ffbae8f9cd2737830",
+    "TESTING.md": "ae9214a3fb16b1454f72f8d3a5223969171a404ef9812205f6a75662a0ba40e5",
+    "backend/app/api/audio.py": "22119e9c5d327f8c94f46d0fb030f8a4bd98958bec308050953af42cf14ef217",
+    "backend/app/api/tasks.py": "7f201994b855bb28015e34523304f754d8b6e716a6b18afcb42319c3b8e5e970",
+    "backend/app/audio/__init__.py": "bcedb79553cbca9a805c067f00b979f3d12afcf54b593c9399fa156ded333b29",
+    "backend/app/audio/align.py": "afc66828e558ef10915ddec38f52ef34142c1a27ff0de5907280b63574ae05a2",
+    "backend/app/audio/engine.py": "cababfa92cb6e80a2d2deb6e3181590259794fe504fc7a4a838e487fc439cea7",
+    "backend/app/audio/probe.py": "a4aa1b230e7b7eb184607056db8a71885e52cf9adcef70c945a5cfda92a14fe3",
+    "backend/app/audio/service.py": "75fd3ff4e819bdfa66a1bb1d8a3a6535024fbe90cbc36dd39f1cd31d8a32d5e2",
+    "backend/app/demo/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "backend/app/demo/encode.py": "e047d222123308a3b127783e50157a4c1626675e8c23a59ce2d0d813cfad90d9",
+    "backend/app/demo/scenarios.py": "781a2ea909aa69b8d7c192eea9bcde51940f74b135958846f8c158b1b62f6219",
+    "backend/app/demo/seed.py": "aa8e11a1204ef4aad94ec7c75d66f2980881ff21c3e2064e9a3222a6393cb10e",
+    "backend/app/evaluation/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "backend/app/evaluation/audio_compare.py": "a66f002539f30379617544985f826b0783dbc05eea17742ed99e2b4f0c916eba",
+    "backend/app/evaluation/compare.py": "d139e10f88839e4c705b958425bd93b31c1793add4f7a86ffb3157e77f1153d7",
+    "backend/app/evaluation/metrics.py": "d0a62014b258a82c2ad0d3fe4ad3ef6cfef5a6754038123b5a086a63ab27270d",
+    "backend/app/evaluation/multisession.py": "4c552e798e7dee9feed7fdb182e3cc2802875b8587deec5b61a735d0feff5438",
+    "backend/app/perception/assignment.py": "e6ae266da0fa18465ecc15d4ee8ca98bfaf49172a24fae25a3d0b25b8346dbeb",
+    "backend/app/perception/camera.py": "4a373ba235f687dc90b2a22563bebb575f226888accb39481515a733e808d949",
+    "backend/app/perception/corrections.py": "6424ad7a3c88473801654cf2f19712f645fdeab0879a0c1cb52c3896a191b856",
+    "backend/app/perception/detect.py": "debcd8f90566967d91005d9cd7f4264506b6155136d827f57f565cc466831a9e",
+    "backend/app/perception/evidence.py": "1db1334b03fcd38681de6846d431bde4664b814776a2ff37b4a2c765e56115c8",
+    "backend/app/perception/frames.py": "46784cfd2216e3ae3b11117ac05b154959f898e270c363a939eadf313eed8fce",
+    "backend/app/perception/ground.py": "b5200d08460cc2c713e6b576ec00069544f4187871f0a836be6882a7ba5bed42",
+    "backend/app/perception/identity_eval.py": "b9def8bd3172b8e1923d1c21114c60d3ba8c5f6e7382f993bb6cb7d804b4df6f",
+    "backend/app/perception/legacy.py": "bb61b15ee09a04867a6195ac8b778262d636fe21c262232940a3d4de9ef8723f",
+    "backend/app/perception/memory.py": "1651b0e4db7ec6c750d2cd76590b368e6313aee6a5d6a1e35d09602df968ab93",
+    "backend/app/perception/presets.py": "6bd24da5175ec66ef42e7c5cee1506dd97e13c0013cd2d322d1ae729df2fbc76",
+    "backend/app/perception/relations.py": "41f835f4479aa7a3c97089efec5964d2d57c75a1e49067d932772805e1fba7e2",
+    "backend/app/perception/tracker.py": "113cc9da497b871292cb704382f3227b4fdea95bdaf5b30bf2986d7211751e53",
+    "backend/app/perception/tracker_ops.py": "277edbed9dc00c40736a3958187899885051676a58f11182a24ec093e1449174",
+    "backend/app/pipeline/deterministic_doc.py": "ee5822119e9f3bafa4611187ce5dbf098168b0705e247e2fe34aef316ad2f062",
+    "backend/app/pipeline/merge.py": "8157b00e018907a8973bbad4d2a8f202e57ac355fd6f711005206f78c081b117",
+    "backend/app/pipeline/parsing.py": "f3f644a2d49b38828f13d45d64d1d78d3bc734ca2c7ef4dcabaee2a75f799d88",
+    "backend/app/pipeline/perception_stage.py": "2f0e446db3b34238a5e7df2c10bbd862592c266ffec7062f3355f1483d905a8a",
+    "backend/app/providers/anthropic_provider.py": "bc66c7e745892cf41568257672b006dafc961218f48f4eb5f59f711a5983e11b",
+    "backend/app/providers/claude_code.py": "36ea653c07801b9368ff9de04c8b62ccbb2de9f11d00176b8f8614021ba6ea4b",
+    "backend/app/providers/compatible.py": "6989fbd28f419bc723d0ee68a54aafc3b9b52a9afa19be7c32dd173cc93145bf",
+    "backend/app/providers/gemini_provider.py": "bd8a98e411fe0c8cfba47253f9d296da7686e4a4a805f194b16d5e62507e39a3",
+    "backend/app/providers/openai_provider.py": "5d2c4a644fc7ff9811c11232e555f2145fb9061e9fc7a064ac2eafac72081772",
+    "backend/app/services/corrections.py": "4abcf7096b899adf8a0e58cbf680ece43c1f9b39ec53f649c66ef5ab8eb9bd42",
+    "backend/app/services/exchange.py": "d8d3b09efaa5fcfdbb4c786936103cd09d86fd3467115714341d551bed6f47ef",
+    "backend/app/services/identity.py": "964707628198dcc543a9757fa12d84a5c0dd0628768b0caa47dfd6cf9b1963da",
+    "backend/app/services/membership.py": "42b7011860279f1bb8c78118d97ee48e02470b6b2eef508fa6c16d141cca4f29",
+    "backend/app/services/ordering.py": "0ab9717516e0e92c99b839f4a41bd1aa6fba8ea1860a644b98fb8c5076ce0fd0",
+    "backend/app/services/reconcile.py": "8fae305aa51ac7c9b642e39ef71bedd6a28d3444c08701586028869c6831ae4b",
+    "backend/app/services/task_export.py": "4e1c1c4b9cb46b1a67ac6376eb112ada1b5ddb8f6075026ad51e5a2ada9223ed",
+    "backend/app/services/tasks.py": "e0dbc598cc999fa888ee29bc57f3691ca03ddce7c51b593612885617d1daf7f8",
+    "backend/app/verification/evaluate.py": "1325d6ddb9b8bed4cbd40b540b24d52f3f9bfe5027e0eb3a1f8a69bdfa9d92ef",
+    "backend/app/video/spatial.py": "5b97f71373c148f806e7a7ddcec19940196d7ad250b53a264dfea019480d4f36",
+    "backend/tests/test_audio.py": "cdefb18b658b67e1934a8a8113513707a294c52dd980fdd4c2055df9e1bea577",
+    "backend/tests/test_claude_code.py": "645801d7c4237f9fa8e8ea63351be56c35ab117db23fb75840b77288b955904e",
+    "backend/tests/test_costs.py": "a291b3c3013b59f8724d4df392c68700f005e6b2d3c66ab6dd741c39b816a3f3",
+    "backend/tests/test_merge.py": "54b50c989d13181ef28df5cd22e23711192544a4dadcbf5affa596717719166a",
+    "backend/tests/test_metrics.py": "ba23a02576c2c1cbe6ed7b571e968694e97cf8f355b19581219d22fa06efe65d",
+    "backend/tests/test_perception.py": "89ed38c910a740e291e1225eb0f29a76c2029c3614a5453109ee8a050dbdc6e0",
+    "frontend/e2e/lab.spec.ts": "4d9b6f940e8adb6b55901999b2db204d1f83d2e5778119bfb57a13bd807a43b7",
+    "frontend/src/components/BeforeAfter.tsx": "0457a98c6364627463af274c4931cb1af1a21c763cd7c0e97899502e8baed4af",
+    "frontend/src/components/LibraryPicker.tsx": "428371ab24e34c6099a22936f0d3fdb2d4d839ffed33b47eb29042273dc4a88a",
+    "frontend/src/components/PerceptionPanel.tsx": "8fffabcfd95ab1fa97397a1947804286e7038fc6e508be1c6c57ff7eafa3d06d",
+    "frontend/src/components/ProjectCosts.tsx": "c5838c922fc73f72158e9ba59e92bc8c259bedfd09cff7c01211c96cc4fd86d5",
+    "frontend/src/components/SettingsFieldset.tsx": "9648841cefc91329591b7087ebf637b9884d6eafb1c08d74aa4790ffe1325182",
+    "frontend/src/components/Shell.tsx": "764cf0390607f39ba7e6ccee7fc2b6e9206015347088f785f334a48ba6e87f9b",
+    "frontend/src/components/Timeline.tsx": "fcea3916f6cc29df1b39eb14592d559e04ff137f49924f2afa701fb1d38e6ab0",
+    "frontend/src/components/VerificationPanel.tsx": "e73622716a615f3f89755a30f28d36aa7023208af04a37404748e805515f2cba",
+    "frontend/src/components/VideoCard.tsx": "4d375f47ab23219f5657353e7c8a12689badb49ad656e3bd58c9ee189de07c29",
+    "frontend/src/components/VideoStage.tsx": "f891ddad6b76bc5d9de2c57d197e1e2f5a3e2aa38536f88e9f822893f23731ed",
+    "frontend/src/components/WorkflowGraph.tsx": "56b138746617d64797500eab487c5b67fa46301df943d2fb3908560218e80e1d",
+    "frontend/src/lib/analysis.ts": "05fffb4b22c9d69fde84190928a6a5630ae2f5bba507376f7d8be09d180b09ef",
+    "frontend/src/lib/api.ts": "764acd76b1e020d379cf82445f1a291a3fbf389ce6c5e6dd94ec4269b91a4db8",
+    "frontend/src/lib/bundleContext.tsx": "4b900f6e0943cce101255303f8da9cf56780d16b9ff582ed115d378136151253",
+    "frontend/src/lib/captureTime.ts": "df5c6f6f418bfed0f58343c218f072bef35e38afb5951af90adeca8848793a62",
+    "frontend/src/lib/formatLog.ts": "5de92dae211d7fa4690b13c487c69b33f2470b5e4318898bf4c8a0521f8fdd99",
+    "frontend/src/lib/humanize.ts": "9b56a7a0a3ffa249429bee7ddfd13d0e2644abd0bd8af8c66cc8bc5e9a32301e",
+    "frontend/src/lib/sceneSlice.ts": "bcad8580de59f80178acf5c35df6bbadb49aba497ee7a138d7c7a378cc95d87d",
+    "frontend/src/lib/stageZoom.ts": "c7cc380ed29820581a1c996613373fdabc93aaa5cb1fb889120688dabd27d528",
+    "frontend/src/lib/taskOrder.ts": "bb4cc75bdbbe125035b788ce9629e5838f6eb7c608c16f6ce0527c95527319a0",
+    "frontend/src/lib/types.ts": "8233061ad2c85892229d03d27676e19edb779a2a30e36b0bb655290422ccba57",
+    "frontend/src/lib/uploadProgress.ts": "601aa02849dca9b6037c2bb910a896ca55b47009267d1d4e7d139e3ba84eb3f2",
+    "frontend/src/lib/verification.ts": "278c373a1c8a079805e3960a9815c5b06d45d9d9b9a32978c5c5745fd8a8684c",
+    "frontend/src/lib/wrapText.ts": "9c6c9806477b64ba763d8dc197020ba60b3e31c8801f896f482a0e8a889b7cb3",
+    "frontend/src/pages/Audio.tsx": "54a35d8f22c10673a5530df72efeaa545d0403053fe20513cda9b1ab4f83931b",
+    "frontend/src/pages/Dashboard.tsx": "841fb070853264aaf0c67d30588d680d997e27341395014bf350af639ca07f4e",
+    "frontend/src/pages/Experiment.tsx": "ad02cdb068951fdaed09f9127c6bcdefcce61010ce519106cb7dd78bd9b8e31e",
+    "frontend/src/pages/Research.tsx": "28826735238f53e2babd95690643564f6f029d7664f35479d0dec10c1cccb372",
+    "frontend/src/pages/RunPages.tsx": "57c6aa63b6316f58a339bb8d159f0cf65c26a0c9228444ff3982747c3e46145f",
+    "frontend/src/pages/Tasks.tsx": "4eb8710a0c9b953c48c0908f791a881c69384e6553718d69329df97d8c53aee6",
+    "frontend/src/pages/Videos.tsx": "f2bc71459e7936ada1280f56b9218e44654175c499bbdffc3b2965b0d1824406",
+    "frontend/src/stores/ui.ts": "627b52922256ddb20ffedda4b8518792b36439927b47461f8dc0cdc3f53837a9",
+    "frontend/src/stores/uploads.ts": "06f3e4e08158603b1e833be71f38b2edc766831ea60608cb8e615b9724b7d03c",
+    "frontend/src/test/analysis.test.ts": "2a01e904022428098f4d3bc4073d996c460e98d66bccac6bc9274d7fa66c3e17",
+    "frontend/src/test/captureTime.test.ts": "5b84a62b89927bb2192eafe870cac03ac575f97ab1f75d7ff4c56b94666bc057",
+    "frontend/src/test/formatLog.test.ts": "023e3bfe2cf99f24c83b47c179d8ee7db3c04dc7a3ab13f087758592333240b0",
+    "frontend/src/test/humanize.test.ts": "a9d58ef3cb7a079b789b21b1167b05116a0d2caf3cb9034e8ab2f792837b839a",
+    "frontend/src/test/sceneSlice.test.ts": "459762e1a85181f38f0f66b5eacc87db28e04368971cfbbe2f2eef9cacb15544",
+    "frontend/src/test/stageZoom.test.ts": "e462c7908bbdbc977f53173870d0cacbfac86f020db42a6628516198434dc18a",
+    "frontend/src/test/taskOrder.test.ts": "6313aa2cd683c9087e9b930e4fd865839a56ecca531a55175a79de6197fa981f",
+    "frontend/src/test/uploadProgress.test.ts": "2e9916a0107c0354e598a854828ff9910b9c123005f5b15474db0126e35c5bd4",
+    "frontend/src/test/verification.test.ts": "748bd36eb01b58389a917131dffbe9f3f7f52a30415ac27f22111d6de041ac47",
+    "frontend/src/test/wrapText.test.ts": "f39f1b07b9f6373ffd28414a115e6c2812ea93a53b9cbcc5dcb4a59e33055f94"
+  },
+  "dependency": {
+    "commit": "27859ac787ae214862488d6348898d012d57353c",
+    "committed": "2026-10-26T02:29:46-05:00",
+    "name": "vision-test-bench",
+    "tree": "aee613efe64817a55c82179eafe8dc6f94558413",
+    "url": "https://github.com/ant10293/vision-test-bench.git"
+  },
+  "files": {
+    ".claude/launch.json": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "a838cf4ccefe27deff8e75edf5f56ac987be23ca928dee4fff40be7a58ef3c5f"
+    },
+    ".env.example": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "bf6943ebf40536fe16a1a90593f3f841ffd1ca3ddfb1ea04e5a39be730b4f096",
+      "mode": "100644",
+      "sha256": "c937cb7f9d36bb0755ed0429050c270df56e5550bb8c1c5bd03785ff69540c4b"
+    },
+    ".gitattributes": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "1a1dbe176bc233b499d35a57db7513f2941c99ab9759f177830c9149be99005b",
+      "mode": "100644",
+      "sha256": "1a1dbe176bc233b499d35a57db7513f2941c99ab9759f177830c9149be99005b"
+    },
+    ".gitignore": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "3cc5601d3644b7897887ce407666b6d290fcdb17443c1450821ac7680a0c688c",
+      "mode": "100644",
+      "sha256": "186b0ba94a93a741d2dd776086ec2f138f59e372d8bd3f3b91c37c94af4e71ea"
+    },
+    "README.md": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "64306209a27c4f549a571d0b8ed2f9179f8f9551e105a9d60b7ff9e7ac23ba16",
+      "mode": "100644",
+      "sha256": "ed45b70c96b7328edea72de6447bd61cfab7c6b85abd05a8170800f8a63057c0"
+    },
+    "backend/alembic.ini": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "c74a3ae36f7fcabc819a612597fb9f391018c970cc817e59ce534e4c5a61a595",
+      "mode": "100644",
+      "sha256": "c74a3ae36f7fcabc819a612597fb9f391018c970cc817e59ce534e4c5a61a595"
+    },
+    "backend/alembic/env.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "2f48e2be43ad7c1698dc81197f7c890f0c8ec40e30682be1bc8d527a2d47495e",
+      "mode": "100644",
+      "sha256": "2f48e2be43ad7c1698dc81197f7c890f0c8ec40e30682be1bc8d527a2d47495e"
+    },
+    "backend/alembic/script.py.mako": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "c20f6ab92d4ed36d77fbccb82bc410cd2ced42f2c162eebb43ddd45ae93dd90e",
+      "mode": "100644",
+      "sha256": "c20f6ab92d4ed36d77fbccb82bc410cd2ced42f2c162eebb43ddd45ae93dd90e"
+    },
+    "backend/alembic/versions/4764a7701322_initial_schema.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "4a2eb71e67ec71a90bf14ced3766495cb8871b8a304eff1f61d22bafb772bd5b",
+      "mode": "100644",
+      "sha256": "4a2eb71e67ec71a90bf14ced3766495cb8871b8a304eff1f61d22bafb772bd5b"
+    },
+    "backend/alembic/versions/a1c9e4d27b10_perception_track_columns.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "ecd73bcf7a5c4d727a89fb724fe1372c4b0c5ac279c411d00777f0e71d451057",
+      "mode": "100644",
+      "sha256": "ecd73bcf7a5c4d727a89fb724fe1372c4b0c5ac279c411d00777f0e71d451057"
+    },
+    "backend/alembic/versions/a9c3f1d7e284_targeted_recovery.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "6cf2a645379f25917ea3c1a064c1fb927849686ce59d5ba8cac39c9e31c992dc"
+    },
+    "backend/alembic/versions/a9d3f6b21c47_hidden_procedures.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "950a85364f129672b520e27702ab62c3184b1f204fe0016df87e0aca933864d1"
+    },
+    "backend/alembic/versions/b4d7e2c15a90_recovery_dismissals.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "53201c0fe613fba5321ecad0e2a6e1f40bc62982103f839df3a212a28258377b"
+    },
+    "backend/alembic/versions/b8d4e2a61c30_workflow_verification.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "d4ad3a38628a3f6833241417e05c709ef838298ae8f8b578ff2647e3d16e6f18",
+      "mode": "100644",
+      "sha256": "d4ad3a38628a3f6833241417e05c709ef838298ae8f8b578ff2647e3d16e6f18"
+    },
+    "backend/alembic/versions/c4e8a1b09d22_task_sessions.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "1d36d07bbefc8d8b0c5a6fa6cdd2c1ae30ad17e07034385b38c182e6cbc92ceb",
+      "mode": "100644",
+      "sha256": "1d36d07bbefc8d8b0c5a6fa6cdd2c1ae30ad17e07034385b38c182e6cbc92ceb"
+    },
+    "backend/alembic/versions/c7e1a5f30b62_starred_runs.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "2bf8ccee9663f6bd89b5389a6653b0c42dcf7f291cbfd0bbc8ad86810301f1fe"
+    },
+    "backend/alembic/versions/d2f6a8c3e915_unique_manual_models.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "b33b2db92c9a95dd3b96ad5495042ac84874d0dacd0f7ea33e2380e53086add7"
+    },
+    "backend/alembic/versions/e3b91c4a7f20_response_price_known.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "02786c8c57940b3411c224e0ab50d1278d1767b586560c10cff0f47e2c1519fd",
+      "mode": "100644",
+      "sha256": "02786c8c57940b3411c224e0ab50d1278d1767b586560c10cff0f47e2c1519fd"
+    },
+    "backend/alembic/versions/f7a2c6e91b04_optional_video_project.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "f03de6ea951fcf0da6391c17d8dcffb5afc4025fe1acda5b8ac006b079e77239",
+      "mode": "100644",
+      "sha256": "f03de6ea951fcf0da6391c17d8dcffb5afc4025fe1acda5b8ac006b079e77239"
+    },
+    "backend/app/__init__.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "44a8c7cbe027d655528c17aeb38420367af4a1d8157d4ecc7d275848f339bbdc",
+      "mode": "100644",
+      "sha256": "0e5ba68da180101882b30423d73be33f87b99a208e4da06c5a20712239b67574"
+    },
+    "backend/app/api/__init__.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "100644",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "backend/app/api/product.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "496560cab336f2b17ef3f68284ccf6ba183144d00723d50ecaf56006f01fae74"
+    },
+    "backend/app/api/reliability.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "8b5e666c718da492aa7ed0aa70aaef11a7f4dd203f55880e4a01d2afc734a67e"
+    },
+    "backend/app/api/routes.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "3b22caa1aa39131757e019837d16aad001e33c78cbb1b21b1709debe03cd8bf2",
+      "mode": "100644",
+      "sha256": "4fdbc37f62d561884c4d968ffdb3493acc9f230d83ab379e196fd86eb05253c3"
+    },
+    "backend/app/api/serialize.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "9a46f922c46b659c4f459cd90d3a5c41a52bbd43be3b4025a0ccfdce5a8fb39b",
+      "mode": "100644",
+      "sha256": "b7c5ef20dc5f7bf279d07e44a85ba97946b67511f9325c703ca6030d73078050"
+    },
+    "backend/app/api/verification.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "a51fc273c4c596141e0d0f74f5410bf7b2a23a9b7e571c8d46fb6ec53455661b",
+      "mode": "100644",
+      "sha256": "b2d94b800373c7d93dd44621511b57d61f6c46569ce01db4f1ac967ae0c408fb"
+    },
+    "backend/app/config.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "e63e33e854c15a807c86ac7c67d768149620bd577edd48f670e18f8e531b2dbc",
+      "mode": "100644",
+      "sha256": "994149722640593e37c784a8cd2ac3a9ff1da134b13b8049d4106d9339d0a81d"
+    },
+    "backend/app/db.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "7e2964c816521ec7a14df711e7b31986a9be1a8d58938047f8f71714386766d7",
+      "mode": "100644",
+      "sha256": "2b7efc2024483147a5025891c295cdcde56693bb83647395c23ca3f91ad7924c"
+    },
+    "backend/app/jobs/__init__.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "100644",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "backend/app/jobs/worker.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "cc334a3a3f0e801e8a2584e16e258c11d5b4382feb6ff9a836cc9ce0a016aad0",
+      "mode": "100644",
+      "sha256": "ecd2b00d6c9ddf7bcbe97f3e83b1f43dafa9fe0eb223868c3a5605e13205bab8"
+    },
+    "backend/app/main.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "0189e763c9c3143eed8326c79cfc6ae1eb2fd26fd4db5db9e2cc6f290f958078",
+      "mode": "100644",
+      "sha256": "6448029edc80bb65c73d8a7bd5ee52502ae8b832005229e5fe82dc31881c6c24"
+    },
+    "backend/app/models/__init__.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "17ad97bbf0cb4945dda888ae574cbf01f3bbb3eded3a95baccbbeec28c0006d9",
+      "mode": "100644",
+      "sha256": "c60eac1e94913366052648bb38a9dbc16cf7b937a7ee5eb9af509d9199167de1"
+    },
+    "backend/app/models/audio.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "36fbdf4cf295f0219d8d4c9209ac2cd7d37f50d72b807f6f976470d0c1d41a44",
+      "mode": "100644",
+      "sha256": "36fbdf4cf295f0219d8d4c9209ac2cd7d37f50d72b807f6f976470d0c1d41a44"
+    },
+    "backend/app/models/domain.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "4354932ee6b276ad21257e18f02556fe1016bf247f08244a5fdb8035a1562d21",
+      "mode": "100644",
+      "sha256": "40d41fe8fa35c023af2ca30d751a7d88809428468cf23605c72bf35465f9256b"
+    },
+    "backend/app/models/media.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "6343417fbc3612f0ecbb873b92215b7231a853968921a8133595ea1d98c9533a",
+      "mode": "100644",
+      "sha256": "0cb81b9d2c793a8889c105b2616441440058aec96e9efad7a91ba34a70934dc2"
+    },
+    "backend/app/models/product.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "ff9fe82cfee0199f7578f01bce3281f5caa31eec6b2ca9c9d2ec429e44b3809b"
+    },
+    "backend/app/models/recovery.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "64fa82fbee37e9cf10e7e27177200ef28134c9fd440bff2c5eed96dca55ea35e"
+    },
+    "backend/app/models/reliability.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "813fe6bdd51888e41994d5038798fca1c77a07632c13add0675247732754a6fc"
+    },
+    "backend/app/models/runs.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "ca61730983fc5dfd285bc591c6ea9965327fdc418b3353415b3ca62b500ce446",
+      "mode": "100644",
+      "sha256": "d955654c0f496cdec71588d6a95bda5215cd2ad71985f6c96aec4485196fd038"
+    },
+    "backend/app/models/sessions.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "166b9d48136edbd4c8152e8469e1f1dad67292d8a22514227d319d4bed3387d4",
+      "mode": "100644",
+      "sha256": "166b9d48136edbd4c8152e8469e1f1dad67292d8a22514227d319d4bed3387d4"
+    },
+    "backend/app/models/util.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "153bf5a717fac82b53f2efab81eb5a5b931480c5e7cad9de4bd07d0312c83584",
+      "mode": "100644",
+      "sha256": "6559b6409ee7ba2ba56b16e9d50f5ff327eaf30f7a063f44ad50b7e466b129b3"
+    },
+    "backend/app/models/verification.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "b81063621fa40d34c55601e617b6056c683d69dd7299e6cf798444d4e1b0d7e2",
+      "mode": "100644",
+      "sha256": "b81063621fa40d34c55601e617b6056c683d69dd7299e6cf798444d4e1b0d7e2"
+    },
+    "backend/app/native_compat.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "907e866456a691e2c90b6afaea6ac6f5b6aca64cc36d5c827110cffe31e3bbb6"
+    },
+    "backend/app/perception/__init__.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "f2175d8ad7a6a655bf6eda1bae531e553f49704f2e48fa7f6b1ce545a87017c5",
+      "mode": "100644",
+      "sha256": "f2175d8ad7a6a655bf6eda1bae531e553f49704f2e48fa7f6b1ce545a87017c5"
+    },
+    "backend/app/perception/appearance.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "57b24bede3fd3880dd0bb44762d7e695d5c8586d5887af0bff6ec52667feb6ba"
+    },
+    "backend/app/perception/encoder.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "6ebeac5e4f5d68c785d5b774b0b4731d18aeb0b517c11644338bcb9876765a3d",
+      "mode": "100644",
+      "sha256": "1c0084f45855b2ff4cbec3c4d603deb12a748b8be4b0aff67be6ba27ed7d6e3d"
+    },
+    "backend/app/perception/sam_masks.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "48bfe05155623708181549f3ac52b14c73a258c2af20ec9058a47281c13e8072"
+    },
+    "backend/app/perception/segment.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "31e0f7ca1448796905751a69ee120c50de1c1222464b0d5b41ed5d084dc7e3d0",
+      "mode": "100644",
+      "sha256": "31e0f7ca1448796905751a69ee120c50de1c1222464b0d5b41ed5d084dc7e3d0"
+    },
+    "backend/app/perception/stream.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "ed05a83d73c9e3b735b70c83c8a5cdc563f309f020f06b8c7bd250ae3ced4daf"
+    },
+    "backend/app/perception/types.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "6f683bc04c491bbec4f12c99400cd33e2199292be2f2584d14ec33290022498d",
+      "mode": "100644",
+      "sha256": "6f683bc04c491bbec4f12c99400cd33e2199292be2f2584d14ec33290022498d"
+    },
+    "backend/app/perception/verify.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "699013ccb76f59144e5fa1f50ddceac972f63b333762ed78cff711cb9d3fe549",
+      "mode": "100644",
+      "sha256": "699013ccb76f59144e5fa1f50ddceac972f63b333762ed78cff711cb9d3fe549"
+    },
+    "backend/app/pipeline/__init__.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "100644",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "backend/app/pipeline/appearance_stage.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "dc28b87b9990ffa028364ef3c47752da39cce91c5f137e4eeb006abb2f73a5ec"
+    },
+    "backend/app/pipeline/clip_time.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "4386b1aa4ee945f39ee04083e271a059f74a3e708652c68c0b50b08c8dd3eeaa"
+    },
+    "backend/app/pipeline/contracts.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "ae0f85b5da5c8313941e09bd5af6785e9265aee5bf8c5e310da25212a551b838"
+    },
+    "backend/app/pipeline/guided.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "ad9ea9c29e01945723d04cdd5cc4812ba06780ff9affd045063b360a9e9d186e"
+    },
+    "backend/app/pipeline/infer.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "cfef0d71a00b7452b3c6a56af4bea92d3c2a094f190f78e176080b48ff7ab356",
+      "mode": "100644",
+      "sha256": "235d0a94a65defe227a09ac35f54da2293cd8e4bad77d5bf5c0f5cf3ae16c0ab"
+    },
+    "backend/app/pipeline/lineage.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "0e2ca99e97fc70a91efb7e38ef3fe35684cf52186f6674376104c7ecc94f4820"
+    },
+    "backend/app/pipeline/object_views.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "3dfe72220b6baa98168eedfeed841d26e3fec299ee84300d9160da333292c204"
+    },
+    "backend/app/pipeline/prompts.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "c30430012435fb7e5f10c77dad20ce8713ad6d5959b1d39efa08a9ee2c439180",
+      "mode": "100644",
+      "sha256": "d5535a964a2a280f2117e782902b274e73412e172f85a8068a7d9c8fd77e5d27"
+    },
+    "backend/app/pipeline/runner.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "b82c6c5b5da857f513464f4351331150a1c308aa4c17327b801c0eeace042b22",
+      "mode": "100644",
+      "sha256": "d6e494c8282bb5cd90558f67e45d3ab9e8b2afbef2aa2b36d3de213a3fb7561d"
+    },
+    "backend/app/pipeline/sampling_stage.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "a87a76fe6f06b7efd1d7d9b2ee03aba59fb1cbadd25e6dd99864199a5ac951db"
+    },
+    "backend/app/pipeline/validate.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "34141f315dd93e36d329901422ae73108f17eb285ebf33bf49ad7947cab5ef04",
+      "mode": "100644",
+      "sha256": "9f1cca9e96d7bccf6021a134d31a0eb25f6eaaa31b3f58c3bad81dcb807b98ca"
+    },
+    "backend/app/providers/__init__.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "100644",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "backend/app/providers/catalog.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "e3eebaa91ddb69806e3d8d42432de76a17ca44b81b36d6b775ca0acd8f182118",
+      "mode": "100644",
+      "sha256": "6167df5eb04560f9533f35bbaa0677568b262d8b75133aab73b46640edb8e5c1"
+    },
+    "backend/app/providers/common.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "7e07f89393503ac1ff156bdbab2eba29d856558475a3c8bc3224496efd9b487d",
+      "mode": "100644",
+      "sha256": "7e07f89393503ac1ff156bdbab2eba29d856558475a3c8bc3224496efd9b487d"
+    },
+    "backend/app/providers/local.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "e1e20f32e232c87df9982cbfd53f8de90091b6d35c9175648610014751f4394e",
+      "mode": "100644",
+      "sha256": "e1e20f32e232c87df9982cbfd53f8de90091b6d35c9175648610014751f4394e"
+    },
+    "backend/app/providers/meta_provider.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "5867140571472c4b228111b78ebc49cbc0f1f9317382f8ae8358f808f4313783",
+      "mode": "100644",
+      "sha256": "ffd0c20b3679ecf9d4b9c48cb81202cf2165b7ffa486a28e5543720a7834d825"
+    },
+    "backend/app/providers/model_list.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "8f2c7f18d15f96546d705c26158117681ad809be0693b9640b83d22da079bf37"
+    },
+    "backend/app/providers/registry.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "77e8b4f86df547c273a28d71f86e8b609a8bfe4fbeb0aac8957d738859a8e530",
+      "mode": "100644",
+      "sha256": "8db4dcd049b586aad90ae4ef3d34b0f84f2dc304b54efc5f4774a3c3fad1ed06"
+    },
+    "backend/app/providers/sam.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "64498dd667bcf73c46fa44a22ef01d0e0379a928fd6138a62a3c760ac800f443",
+      "mode": "100644",
+      "sha256": "497d7169961496c9aaeb513848b44c67b2ebd86d0363616a6f3c6f762742f046"
+    },
+    "backend/app/providers/types.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "7d8501dab64328f2456d458448ffc477397d9ce47fbc11a6bebe1c3e4987f6fd",
+      "mode": "100644",
+      "sha256": "858f115e035f3d103311325b9a5f7ec78a9cd5b69d45e402c5c05f812b5eef3b"
+    },
+    "backend/app/reliability/__init__.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "018c83c61559a4589c3335ec24a3dbe130d9a75ebe34a02230687d623e946b67"
+    },
+    "backend/app/reliability/executor.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "a522237fd13e7e9e1740dddd3bec2e1ad7d6195fd46b0bf0ecb397d3c00b4fa4"
+    },
+    "backend/app/reliability/learning.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "e4c833f90ae84c2e0c64985bab239c30931540c70656eef353e4eb314a87113a"
+    },
+    "backend/app/reliability/metrics.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "2ce8d70afa1ae3cf6da9a81bed53f388b6cfe8512aba34a71c593676f17f0623"
+    },
+    "backend/app/reliability/normalize.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "48f237dcc0ccd1339234f69bacc93e9a8f57be480a759d2da8f870e5cb897b6d"
+    },
+    "backend/app/reliability/service.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "ae2c9d012d12a8a695fd5da1a6815faceb98c97e2951a7699f95ca64ce1a61f2"
+    },
+    "backend/app/schemas/__init__.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "fd80e304e3be1854cf29d920cddd0d7d94ef084241da7f71b6d547f245ef9b0c",
+      "mode": "100644",
+      "sha256": "fd80e304e3be1854cf29d920cddd0d7d94ef084241da7f71b6d547f245ef9b0c"
+    },
+    "backend/app/schemas/analysis.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "39d0bf4994ab854162519063a6526b79956d05a0340e2b63a513ec4d2cbcb880",
+      "mode": "100644",
+      "sha256": "4ada650313b73c1abe5c42a15ff0d2ebc1b4a67232d3ac0c8469d3452c320212"
+    },
+    "backend/app/schemas/enums.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "f85f5841f147eecc2908b75d5833e6cdf28fee048ca9832529c757fcb7a9d1dd",
+      "mode": "100644",
+      "sha256": "aaec98f8fa466adb1dc4cbe09462192f87e242ba13aeddc3e249dd0c235e2ce8"
+    },
+    "backend/app/schemas/generation.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "6911220e7794632debd465503113715edaca7f1e35f6eb00686abf215e2ae5d5"
+    },
+    "backend/app/services/__init__.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "100644",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "backend/app/services/appearance.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "25c8b368456e25a2366bba44f26581882adb1ea979fe982cfc2a9a255873a12b"
+    },
+    "backend/app/services/costs.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "0e9c672310941162e8cbdb9f5e644d25db0cb12731f593ee4e67b93b44e1fba1",
+      "mode": "100644",
+      "sha256": "023437c542dde4e1a36e46e26a8aae1550e1f00539b1ba795391fa3b8d1dfd59"
+    },
+    "backend/app/services/credentials.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "256da1333d3bfb3415d359e6665281aeb1cc7d1fdc4c0e04d142a1460bfc344f",
+      "mode": "100644",
+      "sha256": "2280d7157c908f75ba66e25ae44c1d300b187fabbdfbc2aac8eb31052a214ddf"
+    },
+    "backend/app/services/experiments.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "ab9592897100e8a061c6cde1557e939ddac3020847128a77338c2a8a364989ff",
+      "mode": "100644",
+      "sha256": "db670ca47bf1618b3cee08d7e8ff80739d14d2e9737a7b424c6c4d6d82f9d4e9"
+    },
+    "backend/app/services/ingest.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "8cd4a4ada68d7e7dff7658e86e856403c957daf9868556426cdb87de4759ac5e",
+      "mode": "100644",
+      "sha256": "d3ebc33fdaf684df232a40b8b9efdd31b1dd0c6a5ae3e24dd8e0cadf220654a3"
+    },
+    "backend/app/services/lab_settings.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "c0fb51c5168d38482bedf49937fd2141fc81da548d41e7bd2a1e7a6699d6ff20",
+      "mode": "100644",
+      "sha256": "c0fb51c5168d38482bedf49937fd2141fc81da548d41e7bd2a1e7a6699d6ff20"
+    },
+    "backend/app/services/locate.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "f2b71fe18a520e1b37b3b9bbe0064b3c130981f0c759b185c129c0aa0d654aef"
+    },
+    "backend/app/services/materialize.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "5b2cbe9c15f857692e336d7d9527da79a3f51c81d7622a0eb529f145c8319a6e",
+      "mode": "100644",
+      "sha256": "cfc89d3525242a8da39e7fd079d1b906638f663a6e3ad93b550c1ca7cae869e3"
+    },
+    "backend/app/services/reinspection.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "863cc49d0cb5a51f4b92d68d5de5db3e350d8f3002edd1b6e7ea46202e815823"
+    },
+    "backend/app/services/schema_upgrade.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "bde764f81412c6b643318d493609b68c31143593982cc56f9c0f8d8bf5f801e6",
+      "mode": "100644",
+      "sha256": "b54f95aafbbd5325d6b0d028556710d523601cbe0dc17e906ae5abd37e8fe0a7"
+    },
+    "backend/app/services/storage.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "6a0906aec212c4e9468522f83240ea5d7fb72917dbbd5acac9359b8485071b48",
+      "mode": "100644",
+      "sha256": "6a0906aec212c4e9468522f83240ea5d7fb72917dbbd5acac9359b8485071b48"
+    },
+    "backend/app/services/verification_store.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "490b040ff61aa5503fd9c699b51501c931e18df3a089a5eac2d52e119d9d98a3",
+      "mode": "100644",
+      "sha256": "1c6260a23d23c44b78ee25d15c23d428b654b603f5190d022d3a9f76e04c0ac5"
+    },
+    "backend/app/verification/__init__.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "c73e0b14b81778bbb6d61e386e7bc4c836181398b07d17cedd847faddbdf00f8",
+      "mode": "100644",
+      "sha256": "ed101ef5a8a4335528a19fdd4e2e74a6ee49afc3b3329fefd29471be5f72c35c"
+    },
+    "backend/app/verification/align.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "8c98089bbe80d2ccc54a8348d3f37059df62bfc4543a1a8a2fdf40c786e9f6f8",
+      "mode": "100644",
+      "sha256": "502a28bb9b573204072dabed1abe2b3b27976b2b5769be767c7167000c01273b"
+    },
+    "backend/app/verification/engine.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "061a4a3e957c7b9fe3b37c5620e91fda01a1d84707bc56a2fcb20f8dae0416d8",
+      "mode": "100644",
+      "sha256": "7df6bfe49ff4609afa177a337e512fc290f762d4cb94e4ee3041a391b078836a"
+    },
+    "backend/app/verification/learn.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "0a6cd036bf777ba8c02f4c872e5b6cb763930150f4e7879c98f17f66a6cb9292",
+      "mode": "100644",
+      "sha256": "0f896acca3549b70043f5f2357b51b9ce60a4d1fbc5c2649e9612a38caa89da2"
+    },
+    "backend/app/verification/predicates.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "454d856a5f8684379b7d17aec345370d80445f8245dc9cdc783c491c2353e84b",
+      "mode": "100644",
+      "sha256": "16879b9ebd74c9a3cfc56dc02b052c769f259c509a123fe09bd6e71bc48dac4a"
+    },
+    "backend/app/verification/read.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "c5c6834a3712116cf97bde466edb2dae7391fb1aeafeeff73a7dd85012d3ec16",
+      "mode": "100644",
+      "sha256": "c5c6834a3712116cf97bde466edb2dae7391fb1aeafeeff73a7dd85012d3ec16"
+    },
+    "backend/app/verification/reinspect.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "47138a60b2009c37d22c3be560d9477cd61c33b46fb2d8eb750b2bf618afc465",
+      "mode": "100644",
+      "sha256": "47138a60b2009c37d22c3be560d9477cd61c33b46fb2d8eb750b2bf618afc465"
+    },
+    "backend/app/verification/roles.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "3593f88fde4fd720358c643d95ae2a197c8f7890b8a81a9f0e8ed04b41b231b6",
+      "mode": "100644",
+      "sha256": "69de002ba418ece5b7f1b1bcdd565042307f7b2700f44f9e59f6dd911c758d52"
+    },
+    "backend/app/verification/schema.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "b550b6eb08b4e8f0a2443b0afaca84cd8d84105f7daaf0907f67c6600a322f4a",
+      "mode": "100644",
+      "sha256": "9e58e15c777fc12382c4eac74d85025d5714f0f4e80cfcd5c8b1584b8ead9788"
+    },
+    "backend/app/video/__init__.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "100644",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "backend/app/video/capture_time.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "408bba4acbe1249f906f643f54523462a124010a956171d13bfbba83ed5dba7b",
+      "mode": "100644",
+      "sha256": "408bba4acbe1249f906f643f54523462a124010a956171d13bfbba83ed5dba7b"
+    },
+    "backend/app/video/decode.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "813862b3f5273d7fbc8f4c93590331e61e797e47d8f7faccec714ff365331b61"
+    },
+    "backend/app/video/frames.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "e1fa00fe071555bfa5192245bb5301aa616fabab60da791d7f107f8ce2a3f8b8",
+      "mode": "100644",
+      "sha256": "f4d1a9f43dde87ad6a94cc3a00198f5bbd9e3f289c641934fb6b0ccea56b4f69"
+    },
+    "backend/app/video/probe.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "f3211e96a22888207e0004c248a7b70d92dc63e6cc27f47fcf0af10278b34b6d",
+      "mode": "100644",
+      "sha256": "516caa44ec5c9813c747c17795624336f35a5fca59b0d08d478d88f0bb359011"
+    },
+    "backend/app/video/sampling.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "b8e1049c929b64e163c85b2e74d57ec5c8df7a1965ba086c537c942203128b95",
+      "mode": "100644",
+      "sha256": "a2c7aa3c5d5af6497256a25a86d89ec80d62ca609bd08a85f7ef89ad8d54024e"
+    },
+    "backend/app/video/timeline.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "3206482bb3d4c5c81af9c80ca7e3447b0715a2c334b9f3a0f0d6b4965d20fb14"
+    },
+    "backend/pyproject.toml": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "441651ee917bd03a98a13c4505e5a1730eb94042786e2f476b294dcd29002d89",
+      "mode": "100644",
+      "sha256": "2816fd82efd1264dd9eb96a65a698e631eb67a0ff17eaadf98bdc9a31959deaf"
+    },
+    "backend/tests/__init__.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "100644",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "backend/tests/conftest.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "72570cc35483873318df2b279337affd79756b78d3e93ec78bca313bf4efaaab"
+    },
+    "backend/tests/e2e_server.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "23ba1f079d5a1e7a9a2ea925bd56998c39454a69c5ac12734767d415e90282d8"
+    },
+    "backend/tests/fixtures/bolt_stack_out_of_order.json": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "6af237ffb4b6030473196b658a57e62433d8041823bda96cde889b58aa8733fa"
+    },
+    "backend/tests/fixtures/tray_packet_after_phone.json": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "152d898a683cae4bcd3f1d96a231423e1d0c14a7ba8e22201eea7a55e1778c3c"
+    },
+    "backend/tests/test_appearance.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "fbd924e186cb3dac3db2b9618d19a3b6438651ed60e7e40791a19f3e5d0658d5"
+    },
+    "backend/tests/test_core.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "f1eef9d1744ac95e1927973a56ca1499d377a44a1426808ee2d4059571c79089",
+      "mode": "100644",
+      "sha256": "8bfed7807663c1d4f50f289c7b63af3a0cb9ac6a71bb7b13a5a995dd0916c789"
+    },
+    "backend/tests/test_learnloop_flow.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "d6c8069a77e25645b68bfe125ecd72ae36ce1d50468362ea017519e7f0a293a8"
+    },
+    "backend/tests/test_locate.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "c5f249b5ea3effcef2e99f7021d9bd6a38d65ea03fe3a243f23a43ce8981416c"
+    },
+    "backend/tests/test_manual_models.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "805087030673a7bb5e198bf6a13fd107cb5b245ff87a875615b3162cc6a39f55"
+    },
+    "backend/tests/test_membership.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "b5ce245aef65df7a8510f64cbd91517779c21f4a94cd598cecfb57487dd02256",
+      "mode": "100644",
+      "sha256": "f432064490bcd2610cc0a767f565428cfcfa9ba4cf13113ee196144e30c6e7a0"
+    },
+    "backend/tests/test_meta_contracts.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "5e38feea3478416a6495298dadf98f057fe12b3e8d02f54d6bfd969bb808880a"
+    },
+    "backend/tests/test_model_list.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "dcec7ffc6cf44ac06736635eb35db552b1f203a9d5f58bb327e812f4939eca00"
+    },
+    "backend/tests/test_multisession.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "4d8e651a8fc0c4ae76cd010b4e7ad1db4b6fca6dbd12b3bed086704c323be01f",
+      "mode": "100644",
+      "sha256": "35530651a38d03d6ae31bdc59be73948160be8cfdc71c66d68331f49c99e72f9"
+    },
+    "backend/tests/test_native_compat.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "0b9ec8a9710d2f5d419b1fa8a15999693ee9b5bf6dc3f316616e9ecba1d735a8"
+    },
+    "backend/tests/test_pipeline.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "aed67de4c972eff4bcefe29eb20884fa9168df1d1edbd1c3631e2bfbebb538e4",
+      "mode": "100644",
+      "sha256": "b913b47a01dd7db1682c100f06d6b457f4d7df1507702a16bfff412c1ab2f090"
+    },
+    "backend/tests/test_providers.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "7492cde520e0aa4b35249f0dace31b484f8f5c23f63960c37d0b6ce5b22efe84",
+      "mode": "100644",
+      "sha256": "94debef1292bbb539a30c6ee96d7426dcf30dd32dbfd95b9adc6b1429887081a"
+    },
+    "backend/tests/test_reinspection.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "d014fd338f7cf16956b2f0ca0d08b45db6269a6cbdf209f3c0e9f1ce1b96a751"
+    },
+    "backend/tests/test_reliability.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "4a23bb0618ddbac2a3f5c3fae1109aaa6f4ee799bc26d171db6d096bcce0b524"
+    },
+    "backend/tests/test_sampling.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "fb2f7a89f600e40351774d7be1dd7a291cfc141598e120b43a1378443495b806"
+    },
+    "backend/tests/test_verification.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "5fbee8b318896f34a4f0e99f631a961e0dca18c2e007eb2a9e82565a2847efe8",
+      "mode": "100644",
+      "sha256": "c4c14a70e0bf0f5deb2bd994c57ecc8321e54f0290130a1adc772aaf8765ac64"
+    },
+    "backend/tests/test_verification_cases.py": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "764e5a88d8da7449ff06d110e2dabc044c396876a59a21ba65478ae9205143e4",
+      "mode": "100644",
+      "sha256": "f57c5f8a6b12645486cf14a448e1c5c7f456f7980746f49d3ac12719cdcd5128"
+    },
+    "backend/tests/test_verification_swaps.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "7ba9b0edb28f3d9de3a8caced7591df47c1e443a55847439607cf7d01416e53a"
+    },
+    "backend/tests/verification_fixtures.py": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "51ee922d842effe3ffd9d7d37aeebd76c5131d625dcab706740826514590aa71",
+      "mode": "100644",
+      "sha256": "51ee922d842effe3ffd9d7d37aeebd76c5131d625dcab706740826514590aa71"
+    },
+    "demo/replay/README.md": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "9a7daf7d47c434f5cbd41f6a5c06ef2158382c7728ecc2f70d276aee10ac6dc0"
+    },
+    "docs/ARCHITECTURE.md": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "bf389b325936f140527a96b4822e04b4a7de6c662e09eba5f0b6950288373f09"
+    },
+    "docs/DEMO.md": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "3bd4bb91f65bcd7f870da59592c14f70478a6b289bfbd029b9044d277f14b2c6"
+    },
+    "docs/PROVENANCE.md": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "32127aa6c6b6638b4bdbb603baf51349b851bdb878219d1d36ec5c5d11687bc9"
+    },
+    "docs/SUBMISSION.md": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "4fdafb39a72fba4bf3ffa255e4c89f6270f1bd2d705501dfbd3ad890eae9034a"
+    },
+    "frontend/e2e/smoke.spec.ts": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "928d7f27d01cd6631865ebb44053a745a4d719571242c0204ec04b21c56814bc"
+    },
+    "frontend/index.html": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "9b9ed6bb13e1c2cd28515166cbd1e2fb9d09c7e3cf7121ee6e9ab4e2234a9eb5",
+      "mode": "100644",
+      "sha256": "11dd4363ee7c3c5a1962b386e76e38216dd1fc0bc6a19ffdfdc0c692a6d31b92"
+    },
+    "frontend/package-lock.json": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "577468b320e0a111f2fb5fec34cdfdfefb61251fda6d093867fbcdd8b655f516",
+      "mode": "100644",
+      "sha256": "c27bd107db2eb025cc951c7d9174a57c208b219eb7c6ffcd9bebce56ef71f488"
+    },
+    "frontend/package.json": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "b5718fc41ad4afb6a114d434b01fb274321fb8f6943c995afe723959104934f6",
+      "mode": "100644",
+      "sha256": "cf12f30bc3b9a6c89e4d36af7527fa729f6792088a099f8e2481b461336e5ee4"
+    },
+    "frontend/playwright.config.ts": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "cdbd6b561b1729ea956bb5b6ab79385b75e7c07ccea59980127de0dc08f12c27",
+      "mode": "100644",
+      "sha256": "1ef9aa4eb2503ffe5406d820c26c47612aac1264cab8291802d84a5f5a852b49"
+    },
+    "frontend/public/favicon.svg": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "fd469d965063581bc096e5355e13d94f9cdac412103fcbbb552e53f70d805864"
+    },
+    "frontend/src/App.tsx": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "81534d3601e9ea78a9f0c4251a5e6f63445343f9c8c3993cec0b5166a25def4a",
+      "mode": "100644",
+      "sha256": "be66351b93dba87931e0400eafc97816f60fdbe43fd1224d8539e7a18cec005e"
+    },
+    "frontend/src/components/AssetDropZone.tsx": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "d496ed65a1ac7ae68ffe01ce247c418ae95c5d127e102e50903a9894e23a4a8d",
+      "mode": "100644",
+      "sha256": "ea3caa06206ea299d36046deca4dd9b3df243dc16261997e235ca0ca12608dd4"
+    },
+    "frontend/src/components/AssetPreview.tsx": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "02ee6780fb1cc27852d14397a9a788437c11424e80bd2fd89efe14a23ab2b056",
+      "mode": "100644",
+      "sha256": "fa06f45e34f7af1528cb2dee825624a289f718f01fd8df05939280a73079edcd"
+    },
+    "frontend/src/components/RecordingAnalysis.tsx": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "a07c9b12472366c6c3092945ba457db01100b662b4d336706fd3d0e0e7f85f83"
+    },
+    "frontend/src/components/RecordingDrop.tsx": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "7083d19758c036bf0616b3dc70658a1d89e8134ee4f16870431ad3c5dd0897ac"
+    },
+    "frontend/src/components/Skeleton.tsx": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "bcea421d99bf276d75b741fc536a5f42c36a15aed40284f6be366ed243901081",
+      "mode": "100644",
+      "sha256": "be6fa53f28dc8a7fa55d00f1173564f119331804c49ef93d7f834a9346c689df"
+    },
+    "frontend/src/components/StorageSettings.tsx": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "04c1dce816e3d56074507119a7b7f63b358bf53193834aa6cf947fbf28f7dba8",
+      "mode": "100644",
+      "sha256": "8e6a194adae24f888310181e83b8c42846ebb7a2ea937c43729891dc8efa95fc"
+    },
+    "frontend/src/components/ui.tsx": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "af9a4bd2ddf7512b32b7149f77ac004583b3edc6a41edf61ab15e2ed2adf06d0"
+    },
+    "frontend/src/index.css": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "8267da9ff99b1bdeabcc1ec1925261444dbbb609d55bef9e902c9419210c5999",
+      "mode": "100644",
+      "sha256": "b5b548b90b68cbcfc861e7dfc365942aedceadcd0e35aa1c69921d906a09ec63"
+    },
+    "frontend/src/lib/droppedPath.ts": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "b6bb0a39708418e91deefc3da08c260f11df57c8974c7a43222638e63d1dbab3"
+    },
+    "frontend/src/lib/learnloop.ts": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "19cc33e90a15d6787a087dcdd0f8dc93d404faca956dfcea3c75d16335fda55a"
+    },
+    "frontend/src/lib/queryClient.ts": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "5f57e905a68344e7514e770f81de93fd5cf7ebc42b54811798511f21a80d1246",
+      "mode": "100644",
+      "sha256": "5f57e905a68344e7514e770f81de93fd5cf7ebc42b54811798511f21a80d1246"
+    },
+    "frontend/src/lib/reliability.ts": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "deee1a8775557b52fe6aa55e2efd8b234ea44480c732bd4cf6b8e59d958a767c"
+    },
+    "frontend/src/main.tsx": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "c01c2625402ae4c38a022e40be0f6a3e07e638572def73816ee2b140f696e22c",
+      "mode": "100644",
+      "sha256": "c01c2625402ae4c38a022e40be0f6a3e07e638572def73816ee2b140f696e22c"
+    },
+    "frontend/src/pages/Lab.tsx": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "8aadcb86d415c68c108c625ee8be77323314123b056c786332697091026d257e"
+    },
+    "frontend/src/pages/LabBatch.tsx": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "5b3e48d108ac0539409541a8c01fffdc265ba090b45e3b6898a8834594eb71a2"
+    },
+    "frontend/src/pages/LabRun.tsx": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "3ec2bca32a95c4a6984febe22ff295451c2021cc9887690d3c5adb394a1053d7"
+    },
+    "frontend/src/pages/Procedure.tsx": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "8b8dfa746ec6390836af0e3ad0d4f82007c6f049717aa0e4177de0453ca5d6d3"
+    },
+    "frontend/src/pages/Projects.tsx": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "e699a00e87a6aba91a8d57224bcf984cdd36f20421ee638072d2b171b0d42978",
+      "mode": "100644",
+      "sha256": "d894f0f25db178740a853585fa955b729d3c37d4160fd30850dc9a46350c2eb0"
+    },
+    "frontend/src/pages/Teach.tsx": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "f2fd604d564f15c5caa3225c3939a9cb754bf78740833b32e8195f903e46a06c"
+    },
+    "frontend/src/pages/Verify.tsx": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "c9d8147a52ce41c26373b2e9f1d4a1bbc96f71fae562b8aaa9bdbef6282ace13"
+    },
+    "frontend/src/test/lab.test.tsx": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "5c66933a12763f36fd2c6ffa28da1860a8cd51fd82f9795ff0f91d8d37219bde"
+    },
+    "frontend/src/test/learnloop.test.tsx": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "23ec7d3d3c8b2b07267579c20cf755029b90949eb7389ec9273ea2c34491b198"
+    },
+    "frontend/src/test/setup.ts": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "9b328c4843431fa76d8de00008fc159e95f99a840211085ff3b8f25e53d14409",
+      "mode": "100644",
+      "sha256": "9b328c4843431fa76d8de00008fc159e95f99a840211085ff3b8f25e53d14409"
+    },
+    "frontend/src/vite-env.d.ts": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5",
+      "mode": "100644",
+      "sha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
+    },
+    "frontend/tsconfig.json": {
+      "action": "keep",
+      "base_mode": "100644",
+      "base_sha256": "30b13183f89d3a1f77d5cbefffd97dcce4353449a49781dbdbe650aff07abe4f",
+      "mode": "100644",
+      "sha256": "30b13183f89d3a1f77d5cbefffd97dcce4353449a49781dbdbe650aff07abe4f"
+    },
+    "frontend/vite.config.ts": {
+      "action": "edit",
+      "base_mode": "100644",
+      "base_sha256": "fb12c450b4851f38460e74297f1e2bbe7e2f0cc6bf52e149c1bc1efea8221d87",
+      "mode": "100644",
+      "sha256": "60bff30d50bd80f3fd33bb2b91ccdd6367d84ffc48b8a5ab6a5357a55e91d01e"
+    },
+    "scripts/dev.sh": {
+      "action": "edit",
+      "base_mode": "100755",
+      "base_sha256": "e4ac9cca766c2faaf488ea0e4c968559910d5e46bc99375eb46ec9907bfcd53f",
+      "mode": "100755",
+      "sha256": "33bc559e91cd7d2c56732bac60921f7d31e075c5a47484b4b64d5ea4c9f34c55"
+    }
+  },
+  "format": 1,
+  "reference": {
+    "commit": "8e718ccc49e63bfb5443c77554d98c685818b6e5",
+    "committed": "2026-11-04T14:18:59-06:00",
+    "name": "LearnLoop",
+    "tree": "9ab0296b9a52a9dea12030f98483df5a04f6ca87",
+    "url": "https://github.com/ant10293/LearnLoop.git"
+  }
+}

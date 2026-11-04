@@ -1,0 +1,42 @@
+# LearnLoop hackathon edit script v1
+# path: backend/tests/test_pipeline.py
+# base-sha256: aed67de4c972eff4bcefe29eb20884fa9168df1d1edbd1c3631e2bfbebb538e4
+# result-sha256: b913b47a01dd7db1682c100f06d6b457f4d7df1507702a16bfff412c1ab2f090
+@@ -1,1 +1,1 @@
++"""Pipeline jobs, worker behavior, and file cleanup."""
+@@ -6,1 +5,0 @@
+@@ -53,91 +51,0 @@
+@@ -199,3 +107,1 @@
++def test_deleting_a_video_keeps_files_another_video_shares(client):
+@@ -203,1 +109,2 @@
++    from app.models.media import Project, VideoAsset
++    from app.services.storage import data_path
+@@ -205,2 +111,0 @@
+@@ -208,16 +113,2 @@
++    project = Project(name="Shared")
++    session.add(project)
+@@ -225,1 +116,15 @@
++    project = {"id": project.id}
++    session.close()
++    original = data_path("originals", "shared.mov")
++    proxy = data_path("proxies", "shared.mp4")
++    for path in (original, proxy):
++        path.parent.mkdir(parents=True, exist_ok=True)
++        path.write_bytes(b"video")
++    session = SessionLocal()
++    first, second = (
++        VideoAsset(project_id=project["id"], original_filename="IMG.mov", stored_path="originals/shared.mov", proxy_path="proxies/shared.mp4", checksum_sha256="c" * 64)
++        for _ in range(2)
++    )
++    session.add_all([first, second])
++    session.commit()
++    first_id, second_id = first.id, second.id
+@@ -228,127 +133,5 @@
++    assert client.delete(f"/api/videos/{first_id}").status_code == 200
++    assert original.exists() and proxy.exists()
++    assert client.get(f"/api/media/videos/{second_id}/playback").status_code == 200
++    assert client.delete(f"/api/videos/{second_id}").status_code == 200
++    assert not original.exists() and not proxy.exists()
+@@ -395,0 +179,2 @@
++
++

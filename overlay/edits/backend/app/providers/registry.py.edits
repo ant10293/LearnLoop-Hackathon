@@ -1,0 +1,36 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/providers/registry.py
+# base-sha256: 77e8b4f86df547c273a28d71f86e8b609a8bfe4fbeb0aac8957d738859a8e530
+# result-sha256: 8db4dcd049b586aad90ae4ef3d34b0f84f2dc304b54efc5f4774a3c3fad1ed06
+@@ -1,1 +1,4 @@
++"""Provider registry. The submission build runs Meta models only.
++
++Fixture, deterministic and manual_json are local paths with no model behind them.
++"""
+@@ -7,3 +9,0 @@
+@@ -12,1 +11,0 @@
+@@ -16,6 +15,3 @@
++    MetaProvider.id: MetaProvider,
++    DeterministicProvider.id: DeterministicProvider,
++    FixtureProvider.id: FixtureProvider,
+@@ -23,0 +20,3 @@
++_MANUAL_JSON = "manual_json"
++_LOCAL = {DeterministicProvider.id, FixtureProvider.id, _MANUAL_JSON}
++
+@@ -26,3 +24,0 @@
+@@ -31,1 +27,1 @@
++        raise ProviderError(f"Provider {provider_id} is not part of this build. LearnLoop runs Meta models only.")
+@@ -36,1 +32,13 @@
++    return [*PROVIDERS.keys(), _MANUAL_JSON]
++
++
++def is_local(provider_id: str) -> bool:
++    return provider_id in _LOCAL
++
++
++def run_transport(provider_id: str, config: dict | None) -> str:
++    return "api"
++
++
++def needs_secret(provider_id: str, transport: str = "api") -> bool:
++    return provider_id not in _LOCAL

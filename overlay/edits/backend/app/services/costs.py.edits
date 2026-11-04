@@ -1,0 +1,39 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/services/costs.py
+# base-sha256: 0e9c672310941162e8cbdb9f5e644d25db0cb12731f593ee4e67b93b44e1fba1
+# result-sha256: 023437c542dde4e1a36e46e26a8aae1550e1f00539b1ba795391fa3b8d1dfd59
+@@ -45,0 +46,7 @@
++def uses_api_key(provider_id: str, parameters: dict | None) -> bool:
++    """True when the call was sent with an API key rather than a linked plan."""
++    from app.providers.registry import needs_secret, run_transport
++
++    return needs_secret(provider_id, run_transport(provider_id, parameters or {}))
++
++
+@@ -97,0 +105,1 @@
++        keyed = uses_api_key(request.provider_id, request.parameters_json)
+@@ -99,1 +107,1 @@
++        if request.status == "completed" and response is not None and not known and not keyed:
+@@ -119,0 +128,1 @@
++                "api_key": keyed,
+@@ -161,1 +170,1 @@
++        elif not uses_api_key(request.provider_id, request.parameters_json):
+@@ -200,0 +210,18 @@
++def unpriced_call_count(session: Session, run_id: str) -> int:
++    """Plan calls only. An API-key call with no catalog rate is not unpriced."""
++    return sum(
++        1
++        for request, response in _paired_calls(session, [run_id])
++        if _plan_usage(request, response)
++    )
++
++
++def _plan_usage(request: ModelRequestRow, response: ModelResponseRow | None) -> bool:
++    return (
++        response is not None
++        and request.status == "completed"
++        and not response.price_known
++        and not uses_api_key(request.provider_id, request.parameters_json)
++    )
++
++

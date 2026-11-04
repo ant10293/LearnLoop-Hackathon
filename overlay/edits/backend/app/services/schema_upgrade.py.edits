@@ -1,0 +1,50 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/services/schema_upgrade.py
+# base-sha256: bde764f81412c6b643318d493609b68c31143593982cc56f9c0f8d8bf5f801e6
+# result-sha256: b54f95aafbbd5325d6b0d028556710d523601cbe0dc17e906ae5abd37e8fe0a7
+@@ -9,1 +9,1 @@
++    "projects": [("is_task", "BOOLEAN DEFAULT 0"), ("hidden", "BOOLEAN NOT NULL DEFAULT 0")],
+@@ -32,0 +33,1 @@
++    "analysis_runs": [("starred", "BOOLEAN NOT NULL DEFAULT 0")],
+@@ -38,0 +40,7 @@
++    "object_observations": [
++        ("confidence", "FLOAT"),
++        ("association_status", "VARCHAR(32) DEFAULT ''"),
++        ("source_model", "VARCHAR(80) DEFAULT ''"),
++        ("request_id", "VARCHAR(120) DEFAULT ''"),
++        ("mask_ref", "VARCHAR(200) DEFAULT ''"),
++    ],
+@@ -64,0 +73,33 @@
++    unique_manual_models(engine)
++
++
++def unique_manual_models(engine: Engine) -> None:
++    """Drop repeated manual model ids, keeping the earliest, then enforce one row per provider and id."""
++    if engine.dialect.name != "sqlite":
++        return
++    with engine.begin() as conn:
++        exists = conn.execute(
++            text("SELECT 1 FROM sqlite_master WHERE type='table' AND name='manual_models'")
++        ).first()
++        if not exists:
++            return
++        conn.execute(text(DEDUPE_MANUAL_MODELS))
++        conn.execute(
++            text(
++                "CREATE UNIQUE INDEX IF NOT EXISTS uq_manual_model_provider_model "
++                "ON manual_models (provider_id, model_id)"
++            )
++        )
++
++
++DEDUPE_MANUAL_MODELS = """
++DELETE FROM manual_models
++WHERE id NOT IN (
++    SELECT id FROM (
++        SELECT id, ROW_NUMBER() OVER (
++            PARTITION BY provider_id, model_id ORDER BY created_at, id
++        ) AS position
++        FROM manual_models
++    ) AS ranked WHERE position = 1
++)
++"""

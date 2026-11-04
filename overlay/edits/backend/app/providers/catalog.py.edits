@@ -1,0 +1,84 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/providers/catalog.py
+# base-sha256: e3eebaa91ddb69806e3d8d42432de76a17ca44b81b36d6b775ca0acd8f182118
+# result-sha256: 6167df5eb04560f9533f35bbaa0677568b262d8b75133aab73b46640edb8e5c1
+@@ -4,1 +4,1 @@
++They are not invoices. A call with no API key stays unpriced. A keyed call without a list rate does not.
+@@ -16,2 +16,2 @@
++    "SAM 3.1 returns boxes, masks, and video tracks. It is not an action-recognition model "
++    "and is never substituted for a scene-understanding model. Select it as the segmentation model."
+@@ -21,1 +21,3 @@
++    "unless a future capability record explicitly enables it for that model id. "
++    "A Codex subscription run attaches those frames in read-only mode and is recorded as unpriced plan usage. "
++    "An API key run uses the catalog list rate when one is set."
+@@ -27,0 +30,7 @@
++_CURSOR_NOTE = (
++    "Cursor CLI ask mode. The agent reads frame files and is not given permission to edit them. "
++    "When the answer is not one JSON object, a follow-up call edits answer.json in a temporary "
++    "workspace until it parses. The CLI does not enforce the JSON schema; the lab validates the "
++    "document after the call. Native video is refused. Linked-account usage is recorded as unpriced "
++    "plan usage."
++)
+@@ -146,0 +156,14 @@
++    ("meta", "muse-wonder-1.0"): _caps(
++        model_id="muse-wonder-1.0",
++        provider_id="meta",
++        image=True,
++        native_video=True,
++        structured_output=True,
++        max_images=16,
++        context_tokens=1_048_576,
++        reasoning_efforts=MUSE_EFFORTS,
++        supports_temperature=False,
++        input_price_per_mtok=None,
++        output_price_per_mtok=None,
++        notes=_MUSE_NOTE,
++    ),
+@@ -238,0 +262,26 @@
++for _cursor_model in ("composer-2.5", "auto"):
++    CATALOG[("cursor", _cursor_model)] = _caps(
++        model_id=_cursor_model,
++        provider_id="cursor",
++        image=True,
++        structured_output=True,
++        max_images=16,
++        supports_temperature=False,
++        notes=_CURSOR_NOTE,
++    )
++
++
++# The submission build runs Meta models only.
++CATALOG = {key: value for key, value in CATALOG.items() if key[0] in {"meta", "deterministic", "fixture", "manual_json"}}
++
++
++def cursor_accepts_video(model_id: str) -> bool:
++    """Gemini and Muse accept a video file when Cursor lists those same models.
++
++    Claude, GPT, Grok, Composer, and Auto stay on frames. Grok's chat models take
++    text and images. Its video API generates clips and does not watch one.
++    """
++    token = model_id.lower().removeprefix("cursor-")
++    return token.startswith("gemini") or token.startswith("muse-")
++
++
+@@ -248,1 +297,18 @@
++    if provider_id == "cursor":
++        native = cursor_accepts_video(model_id)
++    temperature = provider_id not in {"meta", "cursor"}
++    if provider_id == "cursor" and native:
++        note = (
++            "Cursor CLI ask mode. This model accepts the video file. "
++            "Linked-account usage is unpriced. An API key run is not. Temperature is not enabled."
++        )
++    elif provider_id == "cursor":
++        note = (
++            "Manually added Cursor model. The CLI runs in ask mode. Linked-account usage is "
++            "unpriced. An API key run is not. Native video and temperature are not enabled."
++        )
++    else:
++        note = (
++            "Manually added model id. Capabilities are a conservative default, not a live "
++            "provider capability record. Native video is not enabled for OpenAI or Anthropic defaults."
++        )
+@@ -257,4 +323,1 @@
++        notes=note,

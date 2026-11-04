@@ -1,2 +1,4 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+# Overlay files must reach assembly byte for byte (their SHA-256 is checked), on any platform.
+overlay/** -text

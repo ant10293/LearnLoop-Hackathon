@@ -1,0 +1,31 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/jobs/worker.py
+# base-sha256: cc334a3a3f0e801e8a2584e16e258c11d5b4382feb6ff9a836cc9ce0a016aad0
+# result-sha256: ecd2b00d6c9ddf7bcbe97f3e83b1f43dafa9fe0eb223868c3a5605e13205bab8
+@@ -9,1 +9,1 @@
++from sqlalchemy import exists, select, update
+@@ -11,0 +12,1 @@
++from app.models.reliability import ReliabilityRun
+@@ -57,1 +58,12 @@
++# Jobs of Reliability Lab runs go to their own bounded lane (app.reliability.executor), so experiments
++# never wait behind, or hold up, ordinary analyses, and the ordinary worker stays one job at a time.
++MAIN_LANE = "main"
++RELIABILITY_LANE = "reliability"
++
++
++def _in_lane(lane: str):
++    experimental = exists().where(ReliabilityRun.analysis_run_id == Job.run_id)
++    return experimental if lane == RELIABILITY_LANE else ~experimental
++
++
++def claim_next(worker_id: str, lane: str = MAIN_LANE) -> str | None:
+@@ -60,1 +72,1 @@
++        pending = session.scalar(select(Job).where(Job.status == "pending", _in_lane(lane)).order_by(Job.created_at))
+@@ -101,1 +113,2 @@
++async def worker_loop(stop: asyncio.Event, recover: bool = True) -> None:
++    """recover=False when the caller already requeued interrupted jobs, before any lane could claim one."""
+@@ -103,3 +116,4 @@
++    if recover:
++        recovered = await asyncio.to_thread(recover_incomplete)
++        if recovered:
++            log.info("recovered %s interrupted jobs", recovered)

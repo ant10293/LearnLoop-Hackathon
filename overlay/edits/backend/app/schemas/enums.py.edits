@@ -1,0 +1,8 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/schemas/enums.py
+# base-sha256: f85f5841f147eecc2908b75d5833e6cdf28fee048ca9832529c757fcb7a9d1dd
+# result-sha256: aaec98f8fa466adb1dc4cbe09462192f87e242ba13aeddc3e249dd0c235e2ce8
+@@ -87,0 +88,1 @@
++    SAM_VIDEO = "sam_video"
+@@ -217,0 +219,1 @@
++    "evidence_fusion",

@@ -1,0 +1,125 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/perception/encoder.py
+# base-sha256: 6ebeac5e4f5d68c785d5b774b0b4731d18aeb0b517c11644338bcb9876765a3d
+# result-sha256: 1c0084f45855b2ff4cbec3c4d603deb12a748b8be4b0aff67be6ba27ed7d6e3d
+@@ -10,0 +11,2 @@
++import os
++import threading
+@@ -12,0 +15,1 @@
++import certifi
+@@ -18,1 +21,2 @@
++# v2: aspect-preserving letterbox, and a supplied mask replaces the background with the ImageNet mean.
++PREPROCESS_VERSION = "rgb-letterbox-mask-224-imagenet-v2"
+@@ -23,0 +28,5 @@
++# Analyses can run side by side (Reliability Lab). One lock keeps a second copy of the weights from loading,
++# and one keeps forward passes on the shared model from interleaving on an accelerator. Frozen weights make
++# a serialized pass give the same vectors.
++_LOAD_LOCK = threading.Lock()
++_ENCODE_LOCK = threading.Lock()
+@@ -70,1 +79,4 @@
++        chosen = [crops[index] for index in missing]
++        chosen_masks = [masks[index] for index in missing]
++        # Encoders that take masks get them. A list of all None keeps the one-argument call.
++        computed = encoder.encode(chosen, chosen_masks) if any(item is not None for item in chosen_masks) else encoder.encode(chosen)
+@@ -82,1 +94,4 @@
++            # Written aside and moved, so an analysis running beside this one never reads half a vector.
++            tmp = path.with_name(f".{path.stem}.{threading.get_ident()}.tmp.npy")
++            np.save(tmp, computed[row])
++            tmp.replace(path)
+@@ -85,0 +101,27 @@
++def preprocess(crop: np.ndarray, mask: np.ndarray | None = None, side: int = 224) -> np.ndarray:
++    """BGR crop to a normalized 3 x side x side float array.
++
++    The longer side is scaled to `side` and the shorter one padded, so a narrow
++    part is not stretched square. A mask the same size as the crop sets every
++    pixel off the object, and the padding, to the ImageNet mean, which is zero
++    after normalization. Without a mask the background pixels stay.
++    """
++    if crop.size == 0:
++        return np.zeros((3, side, side), dtype=np.float32)
++    rgb = cv2.cvtColor(crop, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
++    if mask is not None and mask.shape[:2] == crop.shape[:2] and mask.any():
++        keep = (mask > 0)[..., None]
++        rgb = np.where(keep, rgb, IMAGENET_MEAN[None, None, :])
++    height, width = rgb.shape[:2]
++    scale = side / max(height, width)
++    new_w, new_h = max(1, round(width * scale)), max(1, round(height * scale))
++    interpolation = cv2.INTER_AREA if scale < 1 else cv2.INTER_LINEAR
++    resized = cv2.resize(rgb, (new_w, new_h), interpolation=interpolation)
++    canvas = np.empty((side, side, 3), dtype=np.float32)
++    canvas[:] = IMAGENET_MEAN
++    top, left = (side - new_h) // 2, (side - new_w) // 2
++    canvas[top : top + new_h, left : left + new_w] = resized
++    normalized = (canvas - IMAGENET_MEAN) / IMAGENET_STD
++    return np.ascontiguousarray(normalized.transpose(2, 0, 1), dtype=np.float32)
++
++
+@@ -94,1 +136,1 @@
++    def encode(self, crops: list[np.ndarray], masks: list[np.ndarray | None] | None = None) -> np.ndarray:
+@@ -96,1 +138,1 @@
++        for index, crop in enumerate(crops):
+@@ -99,0 +142,5 @@
++            mask = masks[index] if masks else None
++            if mask is not None and mask.shape[:2] == crop.shape[:2] and mask.any():
++                mask = (mask > 0).astype(np.uint8)
++            else:
++                mask = None
+@@ -102,1 +149,1 @@
++                hist = cv2.calcHist([crop], [channel], mask, [8], [0, 256]).flatten()
+@@ -119,1 +166,1 @@
++    def __init__(self, batch_size: int = 32):
+@@ -122,0 +170,1 @@
++        self.batch_size = max(1, batch_size)
+@@ -124,1 +172,1 @@
++    def encode(self, crops: list[np.ndarray], masks: list[np.ndarray | None] | None = None) -> np.ndarray:
+@@ -126,19 +174,16 @@
++        if not crops:
++            return np.zeros((0, self.dimension), dtype=np.float32)
++        arrays = [preprocess(crop, masks[index] if masks else None) for index, crop in enumerate(crops)]
++        rows = []
++        for start in range(0, len(arrays), self.batch_size):
++            tensor = torch.from_numpy(np.stack(arrays[start : start + self.batch_size])).to(self.device)
++            with _ENCODE_LOCK, torch.no_grad():
++                features = model(tensor)
++            if hasattr(features, "detach"):
++                array = features.detach().float().cpu().numpy()
++            else:
++                array = np.asarray(features, dtype=np.float32)
++            if array.ndim == 1:
++                array = array.reshape(1, -1)
++            rows.append(array)
++        array = np.concatenate(rows, axis=0)
+@@ -151,0 +197,6 @@
++        with _LOAD_LOCK:
++            if self._model is not None:
++                return self._torch, self._model
++            return self._load_locked()
++
++    def _load_locked(self):
+@@ -163,0 +215,3 @@
++        # torch.hub downloads through urllib, which has no CA bundle on python.org
++        # builds and reports the failed verification as "no internet connection".
++        os.environ.setdefault("SSL_CERT_FILE", certifi.where())
+@@ -165,1 +219,2 @@
++            # The repo is fixed here. The default trust check would wait on stdin.
++            model = torch.hub.load("facebookresearch/dinov2", "dinov2_vits14", trust_repo=True)
+@@ -233,0 +289,19 @@
++
++
++_SHARED: dict[str, object] = {}
++
++
++def shared_encoder(encoder_id: str = DINOV2_ID):
++    """One loaded model per process, so a gallery build or a validation pass does not load weights per crop."""
++    if encoder_id not in _SHARED:
++        with _LOAD_LOCK:
++            if encoder_id not in _SHARED:
++                _SHARED[encoder_id] = load_encoder(encoder_id)
++    return _SHARED[encoder_id]
++
++
++if __name__ == "__main__":
++    # python -m app.perception.encoder: load DINOv2 once so its weights are on disk before a demo.
++    encoder = Dinov2Encoder()
++    vectors = encoder.encode([np.zeros((32, 32, 3), dtype=np.uint8)])
++    print(f"{DINOV2_ID} ready on {encoder.device}, {vectors.shape[1]}-D features, preprocessing {PREPROCESS_VERSION}.")

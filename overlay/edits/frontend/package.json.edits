@@ -1,0 +1,9 @@
+# LearnLoop hackathon edit script v1
+# path: frontend/package.json
+# base-sha256: b5718fc41ad4afb6a114d434b01fb274321fb8f6943c995afe723959104934f6
+# result-sha256: cf12f30bc3b9a6c89e4d36af7527fa729f6792088a099f8e2481b461336e5ee4
+@@ -2,1 +2,1 @@
++  "name": "learnloop",
+@@ -17,1 +16,0 @@
+@@ -21,3 +20,1 @@
++    "react-router-dom": "^7.5.0"

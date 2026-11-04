@@ -1,0 +1,11 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/__init__.py
+# base-sha256: 44a8c7cbe027d655528c17aeb38420367af4a1d8157d4ecc7d275848f339bbdc
+# result-sha256: 0e5ba68da180101882b30423d73be33f87b99a208e4da06c5a20712239b67574
+@@ -2,0 +3,6 @@
++from app.native_compat import isolate_bundled_avfoundation
++
++# Before OpenCV or PyAV load. Both bundle libavdevice, and macOS rejects
++# the duplicate AVFoundation class names unless one copy is renamed.
++isolate_bundled_avfoundation()
++

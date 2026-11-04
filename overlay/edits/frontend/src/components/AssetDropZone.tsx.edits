@@ -1,0 +1,66 @@
+# LearnLoop hackathon edit script v1
+# path: frontend/src/components/AssetDropZone.tsx
+# base-sha256: d496ed65a1ac7ae68ffe01ce247c418ae95c5d127e102e50903a9894e23a4a8d
+# result-sha256: ea3caa06206ea299d36046deca4dd9b3df243dc16261997e235ca0ca12608dd4
+@@ -1,0 +2,2 @@
++import { pathsForDrop } from "../lib/droppedPath";
++import { Bone } from "./Skeleton";
+@@ -24,1 +26,1 @@
++  onFiles: (files: File[], paths?: string[]) => void;
+@@ -32,0 +35,1 @@
++  loading?: boolean;
+@@ -34,0 +38,11 @@
++function matchesAccept(file: File, accept: string) {
++  const name = file.name.toLowerCase();
++  const type = file.type.toLowerCase();
++  return accept.split(",").some((entry) => {
++    const token = entry.trim().toLowerCase();
++    if (token.startsWith(".")) return name.endsWith(token);
++    if (token.endsWith("/*")) return type.startsWith(token.slice(0, -1));
++    return type === token;
++  });
++}
++
+@@ -53,0 +68,1 @@
++  loading = false,
+@@ -59,0 +75,1 @@
++  const [rejected, setRejected] = useState("");
+@@ -90,1 +106,1 @@
++  function take(list: FileList | null, hintedPaths?: string[]) {
+@@ -92,1 +108,6 @@
++    if (!files.length) return;
++    const fits = files.map((file) => matchesAccept(file, accept));
++    const refused = files.filter((_, index) => !fits[index]);
++    setRejected(refused.length ? `${refused.map((file) => file.name).join(", ")} can't be used. ${supported}` : "");
++    const usable = files.filter((_, index) => fits[index]);
++    const chosen = multiple ? usable : usable.slice(0, 1);
+@@ -93,0 +115,2 @@
++    // Hinted paths line up with the dropped files, so they are filtered the same way.
++    const paths = hintedPaths?.filter((_, index) => fits[index]).slice(0, chosen.length);
+@@ -95,1 +118,1 @@
++      onFiles(chosen, paths);
+@@ -107,1 +130,1 @@
++    if (!defer) onFiles(chosen, paths);
+@@ -130,0 +154,1 @@
++  const accepting = chooser && !loading;
+@@ -137,1 +161,1 @@
++        tabIndex={loading ? undefined : 0}
+@@ -139,1 +163,1 @@
++          if (!accepting || !isFileDrag(event)) return;
+@@ -144,1 +168,1 @@
++          if (!accepting || !isFileDrag(event)) return;
+@@ -151,0 +176,2 @@
++          const files = event.dataTransfer.files;
++          const hinted = pathsForDrop([...files], event.dataTransfer);
+@@ -154,2 +180,2 @@
++          if (!accepting || !isFileDrag(event)) return;
++          take(files, hinted);
+@@ -158,1 +184,1 @@
++          if (!accepting) return;
+@@ -167,1 +193,1 @@
++          {loading ? <Bone width="16rem" /> : [
+@@ -182,2 +208,2 @@
++        {chooser && <p className="drop-zone-supported">{loading ? <Bone width="10rem" /> : supported}</p>}
++        {accepting && (
+@@ -251,0 +278,1 @@
++      {rejected && <p className="drop-zone-status is-error" role="alert">{rejected}</p>}

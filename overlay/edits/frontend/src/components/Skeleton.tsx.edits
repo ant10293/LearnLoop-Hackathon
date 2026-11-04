@@ -1,0 +1,16 @@
+# LearnLoop hackathon edit script v1
+# path: frontend/src/components/Skeleton.tsx
+# base-sha256: bcea421d99bf276d75b741fc536a5f42c36a15aed40284f6be366ed243901081
+# result-sha256: be6fa53f28dc8a7fa55d00f1173564f119331804c49ef93d7f834a9346c689df
+@@ -3,1 +3,1 @@
++/** Placeholder sized by the text around it. Add `bone-fill` to stretch into a media box. From vision-test-bench. */
+@@ -9,7 +9,9 @@
++/** A real, empty control, so its box comes from the same styles and a loading form does not jump when its values arrive. */
++export function FieldBone({ select = false, className = "" }: { select?: boolean; className?: string }) {
++  const names = className ? `bone field ${className}` : "bone field";
++  return select ? <select className={names} disabled tabIndex={-1} aria-hidden="true" /> : <input className={names} disabled tabIndex={-1} aria-hidden="true" />;
++}
++
++/** Stands in for a ReviewTag. */
++export function TagBone() {
++  return <span className="review"><Bone width="4rem" /></span>;

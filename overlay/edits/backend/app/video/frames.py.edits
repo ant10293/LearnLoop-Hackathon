@@ -1,0 +1,45 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/video/frames.py
+# base-sha256: e1fa00fe071555bfa5192245bb5301aa616fabab60da791d7f107f8ce2a3f8b8
+# result-sha256: f4d1a9f43dde87ad6a94cc3a00198f5bbd9e3f289c641934fb6b0ccea56b4f69
+@@ -18,1 +18,4 @@
++        detail = proc.stderr.strip()
++        if len(detail) > 1500:
++            detail = detail[-1500:]
++        raise VideoError(detail or f"command failed: {cmd[0]}")
+@@ -25,0 +29,3 @@
++            "-hide_banner",
++            "-loglevel",
++            "error",
+@@ -30,0 +37,3 @@
++            # Playback does not need 4K, and encoding it dominates the whole upload.
++            "-vf",
++            "scale=w='if(gt(iw,ih),min(1920,iw),-2)':h='if(gt(iw,ih),-2,min(1920,ih))'",
+@@ -32,0 +42,2 @@
++            "-preset",
++            "veryfast",
+@@ -49,0 +61,3 @@
++            "-hide_banner",
++            "-loglevel",
++            "error",
+@@ -51,2 +65,1 @@
++            # Before -i, ffmpeg jumps to the keyframe and decodes forward to the exact frame.
+@@ -54,0 +68,2 @@
++            "-i",
++            str(source),
+@@ -56,0 +72,2 @@
++            "-pix_fmt",
++            "yuvj420p",
+@@ -58,0 +76,2 @@
++            "-update",
++            "1",
+@@ -63,0 +83,3 @@
++            "-hide_banner",
++            "-loglevel",
++            "error",
+@@ -70,0 +93,2 @@
++            "-pix_fmt",
++            "yuvj420p",
+@@ -72,0 +97,2 @@
++            "-update",
++            "1",

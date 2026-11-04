@@ -1,0 +1,30 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/main.py
+# base-sha256: 0189e763c9c3143eed8326c79cfc6ae1eb2fd26fd4db5db9e2cc6f290f958078
+# result-sha256: 6448029edc80bb65c73d8a7bd5ee52502ae8b832005229e5fe82dc31881c6c24
+@@ -13,1 +13,2 @@
++from app.api.product import router as product_router
++from app.api.reliability import router as reliability_router
+@@ -15,1 +15,0 @@
+@@ -18,2 +18,2 @@
++from app.jobs.worker import recover_incomplete, worker_loop
++from app.reliability.executor import reliability_loop
+@@ -40,2 +39,0 @@
+@@ -52,1 +50,1 @@
++    tasks = []
+@@ -54,1 +52,7 @@
++        # Interrupted jobs are requeued once, before either lane can claim one.
++        recovered = await asyncio.to_thread(recover_incomplete)
++        if recovered:
++            log.info("recovered %s interrupted jobs", recovered)
++        tasks.append(asyncio.create_task(worker_loop(stop, recover=False)))
++        # Reliability Lab repetitions run on their own bounded lane beside the ordinary worker.
++        tasks.append(asyncio.create_task(reliability_loop(stop)))
+@@ -57,1 +61,1 @@
++    for task in tasks:
+@@ -62,1 +66,1 @@
++    app = FastAPI(title="LearnLoop", version=__version__, lifespan=lifespan)
+@@ -80,1 +83,0 @@
+@@ -82,1 +85,2 @@
++    app.include_router(product_router)
++    app.include_router(reliability_router)

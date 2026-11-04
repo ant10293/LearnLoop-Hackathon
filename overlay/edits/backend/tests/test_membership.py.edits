@@ -1,0 +1,5 @@
+# LearnLoop hackathon edit script v1
+# path: backend/tests/test_membership.py
+# base-sha256: b5ce245aef65df7a8510f64cbd91517779c21f4a94cd598cecfb57487dd02256
+# result-sha256: f432064490bcd2610cc0a767f565428cfcfa9ba4cf13113ee196144e30c6e7a0
+@@ -56,93 +55,0 @@

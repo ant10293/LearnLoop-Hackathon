@@ -1,0 +1,34 @@
+# LearnLoop hackathon edit script v1
+# path: frontend/src/components/StorageSettings.tsx
+# base-sha256: 04c1dce816e3d56074507119a7b7f63b358bf53193834aa6cf947fbf28f7dba8
+# result-sha256: 8e6a194adae24f888310181e83b8c42846ebb7a2ea937c43729891dc8efa95fc
+@@ -2,3 +2,2 @@
++import { api, type VideoStorage } from "../lib/learnloop";
++import { ErrorNote } from "./ui";
+@@ -5,0 +5,6 @@
++const CHOICES: { mode: VideoStorage; label: string; detail: string }[] = [
++  { mode: "copy", label: "Copy into LearnLoop", detail: "The file is copied in. The original can be moved or deleted." },
++  { mode: "reference", label: "Reference the original path", detail: "Faster. LearnLoop reads the file where it is, so moving or deleting it means it will not load." },
++];
++
++/** How the next file is added, from vision-test-bench. */
+@@ -8,1 +13,1 @@
++  const settings = useQuery({ queryKey: ["storage"], queryFn: api.storage });
+@@ -10,2 +15,2 @@
++    mutationFn: api.saveStorage,
++    onSuccess: (data) => client.setQueryData(["storage"], data),
+@@ -13,3 +17,0 @@
+@@ -17,82 +19,13 @@
++    <fieldset className="storage" disabled={save.isPending || settings.isPending}>
++      <legend>Video storage</legend>
++      {CHOICES.map((choice) => (
++        <label key={choice.mode} className="storage-choice">
++          <input type="radio" name="video-storage" checked={settings.data?.video_storage === choice.mode} onChange={() => save.mutate(choice.mode)} />
++          <span>
++            <strong>{choice.label}</strong>
++            <span className="muted small">{choice.detail}</span>
++          </span>
++        </label>
++      ))}
++      <ErrorNote message={save.error ? (save.error as Error).message : ""} />
++    </fieldset>

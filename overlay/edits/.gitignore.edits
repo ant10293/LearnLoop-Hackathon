@@ -1,0 +1,7 @@
+# LearnLoop hackathon edit script v1
+# path: .gitignore
+# base-sha256: 3cc5601d3644b7897887ce407666b6d290fcdb17443c1450821ac7680a0c688c
+# result-sha256: 186b0ba94a93a741d2dd776086ec2f138f59e372d8bd3f3b91c37c94af4e71ea
+@@ -7,1 +7,1 @@
++.venv*/
+@@ -9,1 +8,0 @@

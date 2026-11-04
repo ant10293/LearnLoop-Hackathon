@@ -1,0 +1,6 @@
+# LearnLoop hackathon edit script v1
+# path: frontend/vite.config.ts
+# base-sha256: fb12c450b4851f38460e74297f1e2bbe7e2f0cc6bf52e149c1bc1efea8221d87
+# result-sha256: 60bff30d50bd80f3fd33bb2b91ccdd6367d84ffc48b8a5ab6a5357a55e91d01e
+@@ -10,1 +10,1 @@
++      "/api": process.env.LEARNLOOP_API_ORIGIN ?? "http://127.0.0.1:8000",

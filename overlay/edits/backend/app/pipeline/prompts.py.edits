@@ -1,0 +1,82 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/pipeline/prompts.py
+# base-sha256: c30430012435fb7e5f10c77dad20ce8713ad6d5959b1d39efa08a9ee2c439180
+# result-sha256: d5535a964a2a280f2117e782902b274e73412e172f85a8068a7d9c8fd77e5d27
+@@ -15,2 +15,2 @@
++- Spatial proximity is not attachment, insertion, containment, or support. Insertion is a different event: a free part meets a host and its separate visible extent then shrinks or ends while it stays with that host. The seated part is often partly hidden. That is the inserted state, not a failure to see the part.
++- Keep stable object ids across the clip. A part seen again keeps its existing id, including when it is rotated, partly covered, or reduced to an end or a head. Record which ids remain possible as an ambiguity. Omit an id when that part is fully hidden. Do not keep an id alive by pointing it at a different part. Create a new id only when the visible appearance contradicts every existing object.
+@@ -28,0 +29,2 @@
++Leave the person's hands, fingers, and arms out of the object list, and name a hand as the actor when it holds or covers a part.
++Never list the workspace as an object. The surface the parts rest on or the work happens over is background, whatever it looks like: a table, mat, tray, lid, board, box, or sheet. List such an item only when a hand picks it up or moves it, or when it is a small base that parts are mounted on.
+@@ -32,0 +35,3 @@
++x and w are fractions of the frame width, and y and h are fractions of the frame height.
++A circle on a tall frame has a larger w than h.
++When an observation has a box, set confidence to your score from 0 to 1 that the box is this object and only this object. Leave confidence null when there is no box. The score is your judgment, not a measured probability.
+@@ -41,13 +46,9 @@
++An object seen end-on or from a new side is still that object; box the part of it that is visible.
++A separate loose part is its own object, including a second part that looks like one already listed and a small piece lying beside a larger one.
++The box covers that one part's entire visible extent, out to its outermost visible pixels. A box around only a piece of the part is the wrong box.
++When the edges are faint, keep the box on that part instead of growing it across the hand or a
++neighbor. A rotated or partly covered part is still that part: box the visible portion, even when the
++long side is no longer the side you saw before. Omit an object from a frame when it is fully out of
++view or fully hidden, and do not invent a box in that case. Do not keep its id by boxing a different
++part, including a larger neighbor of a similar color. A box many times larger than the part is the
++wrong box.
+@@ -75,1 +76,7 @@
++One verb with one start and one end is one action. When both hands lift parts during that same
++interval, list every object on that action instead of repeating the verb.
++Insert means a free part meets a host and its separate visible extent then shrinks or ends while the
++part stays with the host. The remainder is often hidden inside the host. That hidden remainder is the
++inserted state, so do not call the action an approach or leave it unconfirmed merely because the free
++part is no longer a separate silhouette. Approach means the part moves toward a host and stays a
++separate, fully visible object. Do not call an approach an insertion.
+@@ -89,4 +96,11 @@
++Each step needs required objects, preconditions, supporting action ids in action_local_ids, a time interval, and uncertainty.
++time_start and time_end are seconds on the recording. A step that spans the work has those two times apart, so the page can show the beginning, middle, and end.
++Each step also has three different sentences, and none of them is a copy of the step name:
++expected_action says how the change is carried out.
++completion_condition says the visible end state that means the step is done. The page shows this after "Expected:".
++observed_result says what was actually seen, including when it finished. The page shows this after "Observed:".
++Do not leave expected_action, completion_condition, or observed_result empty.
++A dependency joins two different steps. from_step and to_step are different workflow step ids, such as Step_1 and Step_2.
++When the recording has one step, or the steps have no ordering constraint, dependencies is empty.
++Do not make a step depend on itself.
++Dependencies use category necessary_physical, observed_temporal, inferred, or unknown.
+@@ -95,0 +110,3 @@
++Name the step for the physical change. When a supporting action is an insertion, the step name and
++the expected action say insert. Do not paraphrase that action as handle, bring, or inspect.
++The observed result says whether the part's separate visible extent ended at the host.
+@@ -104,0 +122,14 @@
++LOCATE_PART = """
++You are locating one known physical part. The first image is a tight crop of that part from an earlier moment. Every later image is a full frame, labeled with its timestamp.
++
++The part may be rotated, partly covered by fingers, or seen at a changed angle. A different orientation is still the same part. Box only the visible portion of this part, tightly, on each full frame where any of it is visible. Do not box the hand. Do not box a larger neighbor, even one of a similar color.
++
++If the part is fully hidden or not in that frame, set bbox to null and visibility to absent. Do not invent a box, and do not substitute a different part.
++
++Return JSON only: {"observations": [{"timestamp": number, "visibility": "visible" | "partial" | "absent", "bbox": {"x": number, "y": number, "w": number, "h": number} | null, "confidence": number | null}]}
++When the box is present, confidence is your score from 0 to 1 that it is this part and only this part. Use null when there is no box. The score is your judgment, not a measured probability.
++x, y, w, and h are fractions of the full frame, each from 0 to 1, with the origin at the top left.
++Do not return an observation for the reference crop.
++""".strip()
++
++
+@@ -111,0 +143,18 @@
++DISCOVERY = """
++Discovery pass. Identify the physical objects and give each one an observation with a box on the
++moments supplied. Copy a tracked instance id into instance_id when the object is that instance.
++Return objects, observations, camera, summary, and ambiguities about identity or visibility.
++Leave actions, states, transitions, relationships, workflow_steps, and dependencies out of this pass.
++A later call interprets them after the boxes are measured.
++""".strip()
++
++INTERPRETATION = """
++Interpretation pass. Object identities and boxes were measured before this call and are in the prior
++analysis. A row with observation_role canonical is measured geometry. A row with geometry_origin
++vlm_estimated is an earlier estimate, not a measurement. Keep every object id and do not add, move,
++or redraw boxes. Return actions, states, transitions, relationships, workflow_steps, dependencies,
++and ambiguities. Do not return objects or observations, and use only the keys in the schema. Return
++an empty list when the evidence supports no record. Overlap or proximity is not attachment, insertion,
++or completion.
++""".strip()
++

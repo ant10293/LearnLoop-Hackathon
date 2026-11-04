@@ -1,0 +1,35 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/pipeline/validate.py
+# base-sha256: 34141f315dd93e36d329901422ae73108f17eb285ebf33bf49ad7947cab5ef04
+# result-sha256: 9f1cca9e96d7bccf6021a134d31a0eb25f6eaaa31b3f58c3bad81dcb807b98ca
+@@ -63,10 +63,13 @@
++        if obs.evidence.classification.value == "DIRECTLY_OBSERVED" and not _anchored(obs.evidence):
++            # The sighting time is the frame. Models often leave the evidence list empty.
++            if obs.timestamp is not None:
++                obs.evidence.frame_timestamps = [obs.timestamp]
++            else:
++                issues.append(
++                    ValidationIssue(
++                        severity="error",
++                        code="observation_without_evidence",
++                        message="A directly observed claim has no frame or interval reference.",
++                        entity_type="observation",
++                        entity_id=obs.object_local_id,
++                    )
+@@ -74,1 +76,0 @@
+@@ -206,1 +207,0 @@
+@@ -210,1 +211,1 @@
++                    severity="warning",
+@@ -212,1 +213,4 @@
++                    message=(
++                        f"Step {dep.from_step} depends on itself. "
++                        "A step has no ordering constraint against itself, so this edge was dropped."
++                    ),
+@@ -216,0 +221,2 @@
++            continue
++        kept_dependencies.append(dep)
+@@ -299,0 +306,4 @@
++def _anchored(evidence) -> bool:
++    return bool(evidence.frame_timestamps) or evidence.time_start is not None
++
++

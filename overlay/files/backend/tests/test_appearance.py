@@ -1,0 +1,591 @@
+"""Appearance galleries and SAM track checks. No test loads DINOv2 weights or reaches a provider."""
+
+import json
+from types import SimpleNamespace
+
+import numpy as np
+from app.perception import appearance as A
+from app.perception.encoder import preprocess
+
+from tests.test_learnloop_flow import _analyze, _upload, lab  # noqa: F401
+
+
+def _vec(*values):
+    vector = np.zeros(8, dtype=np.float32)
+    vector[: len(values)] = values
+    return vector / np.linalg.norm(vector)
+
+
+def _sample(local_id, t, vector, box=None, segment=0, **quality):
+    sample = A.Sample(local_id, t, int(round(t * 12)), box or {"x": 0.4, "y": 0.4, "w": 0.1, "h": 0.1}, 0.9, segment=segment)
+    sample.vector = vector
+    sample.crop = np.zeros((20, 20, 3), np.uint8)
+    sample.quality.update({"relative_sharpness": 1.0, "mask_coverage": 0.6, **quality})
+    return sample
+
+
+RED, BLUE, GREEN = _vec(1, 0.1, 0), _vec(0, 0.1, 1), _vec(0, 1, 0.1)
+OPTIONS = A.Settings()
+
+
+def _view(base, t):
+    """The same part from a slightly different angle at each time: still a match, not a duplicate."""
+    turn = np.zeros(8, dtype=np.float32)
+    turn[3 + int(t * 3) % 5] = 0.35
+    vector = base + turn
+    return vector / np.linalg.norm(vector)
+
+
+def test_a_gap_or_a_jump_starts_a_new_segment_and_steady_motion_does_not():
+    box = lambda x, w=0.05: {"x": x, "y": 0.5, "w": w, "h": 0.05}  # noqa: E731
+    times = [0.0, 0.083, 0.167, 1.5, 1.583, 1.667]
+    boxes = [box(0.1), box(0.11), box(0.12), box(0.13), box(0.8), box(0.81)]
+    assert A.split_segments(times, boxes) == [0, 0, 0, 1, 2, 2]
+    grown = [box(0.1), box(0.1, 0.3)]
+    assert A.split_segments([0.0, 0.083], grown) == [0, 1]
+
+
+def test_quality_rejects_small_blurry_clipped_and_overlapping_crops():
+    sharp = np.zeros((40, 40, 3), np.uint8)
+    sharp[::4] = 255
+    blurry = np.full((40, 40, 3), 120, np.uint8)
+    items = [
+        A.Sample("a", 0.0, 0, {"x": 0.3, "y": 0.3, "w": 0.1, "h": 0.1}, 0.9, crop=sharp),
+        A.Sample("a", 0.5, 6, {"x": 0.3, "y": 0.3, "w": 0.1, "h": 0.1}, 0.9, crop=sharp),
+        A.Sample("a", 1.0, 12, {"x": 0.3, "y": 0.3, "w": 0.1, "h": 0.1}, 0.9, crop=blurry),
+        A.Sample("a", 1.5, 18, {"x": 0.3, "y": 0.3, "w": 0.005, "h": 0.005}, 0.9, crop=sharp),
+        A.Sample("a", 2.0, 24, {"x": 0.0, "y": 0.3, "w": 0.1, "h": 0.1}, 0.9, crop=sharp),
+        A.Sample("a", 2.5, 30, {"x": 0.3, "y": 0.3, "w": 0.1, "h": 0.1}, 0.9, crop=sharp),
+    ]
+    # A small part sitting inside a bigger box: IoU is low, containment is not.
+    others = {2.5: [("b", {"x": 0.25, "y": 0.25, "w": 0.3, "h": 0.3})]}
+    A.score_quality(items, others, (480, 640), OPTIONS)
+    assert items[0].rejections == [] and items[1].rejections == []
+    assert "blurry" in items[2].rejections
+    assert "too_small" in items[3].rejections
+    assert "clipped" in items[4].rejections
+    assert "overlaps:b" in items[5].rejections
+
+
+def test_references_come_from_the_seeded_stretch_and_stop_where_it_drifts():
+    # a is seeded at 0. SAM follows it to 3s, then slides onto something blue in the same stretch.
+    a = [_sample("a", t, _view(RED, t)) for t in np.arange(0, 3.0, 0.34)] + [_sample("a", t, BLUE) for t in np.arange(3.0, 6.0, 0.34)]
+    a += [_sample("a", 6.5, RED)]  # after the drift, even a red crop is not trusted in that stretch
+    b = [_sample("b", t, BLUE, box={"x": 0.1, "y": 0.1, "w": 0.1, "h": 0.1}) for t in np.arange(0, 6.0, 0.5)]
+    chosen = A.select_references({"a": a, "b": b}, {"a": [0.0], "b": [0.0]}, {"a": "red block", "b": "blue block"}, OPTIONS)
+    refs = chosen["a"]["references"]
+    assert chosen["a"]["status"] == "ready"
+    assert all(item.timestamp < 3.0 for item in refs)
+    assert 3 <= len(refs) <= OPTIONS.max_references
+    assert chosen["a"]["rejection_reasons"].get("drifted") == 1 and chosen["a"]["rejection_reasons"].get("after_drift", 0) >= 8
+    # Temporal diversity: no two references closer than the minimum gap.
+    gaps = np.diff([item.timestamp for item in refs])
+    assert (gaps >= A.MIN_REFERENCE_GAP_SEC - 1e-6).all()
+
+
+def test_selection_is_deterministic_and_keeps_few_views_as_limited():
+    a = [_sample("a", 0.0, RED), _sample("a", 0.4, RED)]
+    first = A.select_references({"a": a}, {"a": [0.0]}, {"a": "red"}, OPTIONS)
+    second = A.select_references({"a": a}, {"a": [0.0]}, {"a": "red"}, OPTIONS)
+    assert [s.timestamp for s in first["a"]["references"]] == [s.timestamp for s in second["a"]["references"]] == [0.0]
+    assert first["a"]["status"] == "limited"
+
+
+def test_no_seed_means_no_reference_rather_than_an_invented_one():
+    a = [_sample("a", t, RED) for t in (0.0, 1.0, 2.0)]
+    chosen = A.select_references({"a": a}, {}, {"a": "red"}, OPTIONS)
+    assert chosen["a"]["status"] == "unavailable" and chosen["a"]["references"] == []
+
+
+def test_blurry_crops_never_become_references():
+    a = [_sample("a", 0.0, RED)] + [_sample("a", t, RED) for t in (1.0, 2.0, 3.0)]
+    for item in a[1:]:
+        item.rejections.append("blurry")
+    chosen = A.select_references({"a": a}, {"a": [0.0]}, {"a": "red"}, OPTIONS)
+    assert [s.timestamp for s in chosen["a"]["references"]] == [0.0]
+    assert chosen["a"]["rejection_reasons"]["blurry"] == 3
+
+
+def _rows(own_vectors, galleries, labels=None, boxes=None):
+    items = [_sample("a", index * 0.33, vector, box=(boxes or {}).get(index)) for index, vector in enumerate(own_vectors)]
+    labels = labels or {"a": "red block", "b": "blue block"}
+    return A.validate_samples({"a": items}, galleries, labels, {"a": {0}}, OPTIONS)["a"]
+
+
+def test_two_frames_that_look_like_another_object_are_rejected_and_one_is_not():
+    galleries = {"a": np.stack([RED]), "b": np.stack([BLUE])}
+    rows = _rows([RED, RED, BLUE, BLUE, RED, BLUE, RED], galleries)
+    assert [row["status"] for row in rows] == ["validated", "validated", "rejected", "rejected", "validated", "provisional", "validated"]
+    assert rows[2]["reason"] == "looks_like:b"
+
+
+def test_identical_parts_stay_ambiguous_instead_of_swapping():
+    galleries = {"a": np.stack([RED]), "b": np.stack([RED])}
+    rows = _rows([RED, RED], galleries, {"a": "red block", "b": "red block"})
+    assert {row["status"] for row in rows} == {"ambiguous"}
+
+
+def test_an_unfamiliar_view_is_provisional_not_rejected():
+    # A hand over the part, or a new angle: unlike the references, and nothing else matches either.
+    galleries = {"a": np.stack([RED]), "b": np.stack([BLUE])}
+    rows = _rows([RED, GREEN, GREEN, RED], galleries)
+    assert [row["status"] for row in rows] == ["validated", "provisional", "provisional", "validated"]
+
+
+def test_a_box_that_grows_past_the_object_is_rejected():
+    galleries = {"a": np.stack([RED]), "b": np.stack([BLUE])}
+    big = {"x": 0.1, "y": 0.1, "w": 0.5, "h": 0.5}
+    rows = _rows([RED, RED, GREEN, GREEN], galleries, boxes={2: big, 3: big})
+    assert [row["status"] for row in rows][2:] == ["rejected", "rejected"]
+    assert rows[2]["reason"] == "box_grew_beyond_object"
+
+
+def test_a_crop_overlapping_another_object_is_not_called_a_swap():
+    galleries = {"a": np.stack([RED]), "b": np.stack([BLUE])}
+    items = [_sample("a", t, BLUE) for t in (0.0, 0.33)]
+    for item in items:
+        item.rejections.append("overlaps:b")
+    rows = A.validate_samples({"a": items}, galleries, {"a": "red", "b": "blue"}, {"a": {0}}, OPTIONS)["a"]
+    assert {row["status"] for row in rows} == {"provisional"} and rows[0]["reason"] == "overlaps_other_object"
+
+
+def _beside(a_vectors, b_box):
+    """a's box beside b's at each moment, b matching its references; a's crops as given."""
+    a = [_sample("a", index * 0.33, vector) for index, vector in enumerate(a_vectors)]
+    b = [_sample("b", index * 0.33, BLUE, box=b_box) for index in range(len(a_vectors))]
+    labels = {"a": "flat washer", "b": "lock washer"}
+    return {"a": a, "b": b}, labels
+
+
+def test_a_part_that_looks_like_another_beside_it_is_ambiguous_not_hidden():
+    # Seen on the bolt demonstration: the lock washer's references show it threaded on the bolt, so the correct
+    # flat washer boxes next to it scored as the lock washer while the lock washer was validated beside them.
+    galleries = {"a": np.stack([RED]), "b": np.stack([BLUE])}
+    samples, labels = _beside([RED, BLUE, BLUE, BLUE, BLUE], {"x": 0.52, "y": 0.4, "w": 0.1, "h": 0.1})
+    rows = A.validate_samples(samples, galleries, labels, {"a": {0}, "b": {0}}, OPTIONS)
+    assert [row["status"] for row in rows["a"]][1:] == ["rejected"] * 4
+    found = A.look_alike_pairs(samples, rows)
+    assert [(item["objects"], item["frames"]) for item in found] == [(["a", "b"], 4)]
+    again = A.validate_samples(samples, galleries, labels, {"a": {0}, "b": {0}}, OPTIONS, A.pair_set(found))
+    assert [row["status"] for row in again["a"]] == ["validated"] + ["ambiguous"] * 4
+    assert all(row["status"] == "validated" for row in again["b"])
+
+
+def test_looking_like_another_part_where_that_part_is_is_still_a_swap():
+    # a's box sits on b itself: that is SAM following the wrong part, not two parts that look alike.
+    galleries = {"a": np.stack([RED]), "b": np.stack([BLUE])}
+    samples, labels = _beside([RED, BLUE, BLUE, BLUE, BLUE], {"x": 0.4, "y": 0.4, "w": 0.1, "h": 0.1})
+    rows = A.validate_samples(samples, galleries, labels, {"a": {0}, "b": {0}}, OPTIONS)
+    assert A.look_alike_pairs(samples, rows) == []
+
+
+def test_a_few_coincidences_do_not_make_a_pair():
+    galleries = {"a": np.stack([RED]), "b": np.stack([BLUE])}
+    samples, labels = _beside([RED, BLUE, BLUE, RED, RED], {"x": 0.52, "y": 0.4, "w": 0.1, "h": 0.1})
+    rows = A.validate_samples(samples, galleries, labels, {"a": {0}, "b": {0}}, OPTIONS)
+    assert A.look_alike_pairs(samples, rows) == []
+
+
+def test_an_attempt_track_that_looks_like_its_look_alike_partner_is_not_rejected_whole():
+    galleries = {"a": np.stack([RED]), "b": np.stack([BLUE])}
+    items = [_sample("a", index * 0.33, BLUE) for index in range(4)]
+    rows = A.validate_samples({"a": items}, galleries, {"a": "flat washer", "b": "lock washer"}, {"a": {0}}, OPTIONS, frozenset({frozenset({"a", "b"})}))
+    A.reject_never_matched(rows, OPTIONS)
+    assert {row["status"] for row in rows["a"]} == {"ambiguous"}
+
+
+def test_no_reference_means_provisional_for_every_box():
+    rows = _rows([RED, BLUE], {"b": np.stack([BLUE])})
+    assert {row["status"] for row in rows} == {"provisional"}
+
+
+def test_rejected_never_appears_among_drawn_statuses():
+    assert "rejected" not in A.SHOWN
+
+
+def test_masked_preprocessing_differs_and_narrow_parts_are_padded_not_stretched():
+    crop = np.zeros((100, 20, 3), np.uint8)
+    crop[:, :, 2] = 255
+    crop[:10] = (0, 255, 0)
+    mask = np.zeros((100, 20), np.uint8)
+    mask[10:] = 1
+    plain, masked = preprocess(crop), preprocess(crop, mask)
+    assert plain.shape == masked.shape == (3, 224, 224)
+    assert not np.allclose(plain, masked)
+    # The 100x20 crop becomes 224x45 in the middle; the sides are the zero padding value after normalization.
+    assert np.allclose(plain[:, :, :80], 0, atol=1e-5) and not np.allclose(plain[:, :, 100:124], 0)
+
+
+def test_cached_encode_passes_masks_and_keys_on_them(tmp_path):
+    from app.perception.encoder import cached_encode
+
+    seen = []
+
+    class Recording:
+        encoder_id, encoder_version, preprocess_version, dimension = "fake", "1", "p", 3
+
+        def encode(self, crops, masks=None):
+            seen.append(masks)
+            return np.tile(np.array([[1.0, 0, 0]], np.float32), (len(crops), 1))
+
+    crop = np.full((8, 8, 3), 9, np.uint8)
+    mask = np.ones((8, 8), np.uint8)
+    cached_encode(Recording(), [crop], [mask], tmp_path)
+    cached_encode(Recording(), [crop], [None], tmp_path)
+    assert seen[0][0] is mask and len(seen) == 2
+
+
+def test_a_gallery_round_trips_and_another_version_is_never_read(lab):  # noqa: F811
+    vectors = {"a": np.stack([RED, GREEN])}
+    manifest = {
+        "schema": A.GALLERY_SCHEMA, "status": "ready", "encoder_id": "dinov2_vits14",
+        "encoder_version": A.DINOV2_VERSION, "preprocessing_version": A.PREPROCESS_VERSION,
+        "selection_version": A.SELECTION_VERSION, "objects": {"a": {"status": "ready", "references": [{}, {}]}},
+    }
+    written = A.write_gallery("run-x", manifest, vectors, {"a": [np.zeros((4, 4, 3), np.uint8)]})
+    read, loaded = A.read_gallery("run-x")
+    assert read["gallery_id"] == written["gallery_id"]
+    assert np.allclose(loaded["a"], vectors["a"]) and abs(np.linalg.norm(loaded["a"][0]) - 1) < 1e-5
+    template = {"roles": [{"role_id": "role:a", "source_object_ids": ["a"]}, {"role_id": "role:z", "source_object_ids": ["z"]}]}
+    _, by_role = A.role_galleries(template, "run-x")
+    assert list(by_role) == ["role:a"]
+    stale = json.loads((A.gallery_dir("run-x") / "manifest.json").read_text())
+    stale["preprocessing_version"] = "old"
+    (A.gallery_dir("run-x") / "manifest.json").write_text(json.dumps(stale))
+    assert A.read_gallery("run-x") == (None, {})
+
+
+class ColorEncoder:
+    """Mean colour of the masked pixels. Deterministic, so the flow test needs no weights."""
+
+    encoder_id, encoder_version, preprocess_version, dimension, device = "dinov2_vits14", "test", "test", 8, "cpu"
+
+    def encode(self, crops, masks=None):
+        rows = []
+        for index, crop in enumerate(crops):
+            mask = masks[index] if masks else None
+            pixels = crop[mask > 0] if mask is not None and mask.any() else crop.reshape(-1, 3)
+            b, g, r = pixels.reshape(-1, 3).mean(axis=0) / 255.0
+            rows.append(_vec(b, g, r, 0.05))
+        return np.stack(rows)
+
+
+def _two_colour_video(path, frames=24):
+    """A red square on the left and a blue one on the right of a grey 160x120 frame, at 12 fps."""
+    import cv2
+
+    writer = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"mp4v"), 12, (160, 120))
+    for _ in range(frames):
+        frame = np.full((120, 160, 3), 128, np.uint8)
+        frame[10:60, 10:60] = (0, 0, 255)
+        frame[10:60, 100:150] = (255, 0, 0)
+        writer.write(frame)
+    writer.release()
+    return path
+
+
+def _sam_answer(frames, drift_from=None):
+    """Track 0 follows the red square; from drift_from on it slides onto the blue one. Track 1 follows blue."""
+    lines = []
+    for frame in range(frames):
+        left = 100 if drift_from is not None and frame >= drift_from else 10
+        lines.append(
+            f"<{frame}f>0<|box;x1={left};y1=10;x2={left + 50};y2=60;w=160;h=120;c=0.9|><|mask;data=|>"
+            f"1<|box;x1=100;y1=10;x2=150;y2=60;w=160;h=120;c=0.9|><|mask;data=|>"
+        )
+    return "\n".join(lines)
+
+
+def test_learning_builds_a_gallery_automatically_and_drift_is_not_drawn(lab, monkeypatch):  # noqa: F811
+    from app.config import settings
+    from app.pipeline import appearance_stage, object_views
+
+    client, stub, tmp = lab
+    monkeypatch.setattr(settings, "object_views", True)
+    monkeypatch.setattr(appearance_stage, "shared_encoder", lambda *args: ColorEncoder())
+    monkeypatch.setattr(object_views, "_low_rate_copy", lambda source, dest: source)
+    answer = _sam_answer(24, drift_from=14)
+
+    class FakeSam:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def segment_video(self, media, prompt, **kwargs):
+            return SimpleNamespace(text=answer, file_id="f", request_id="r", input_tokens=0, output_tokens=0, latency_ms=1)
+
+    monkeypatch.setattr(object_views, "SamAdapter", FakeSam)
+    ids = [item["local_id"] for item in json.loads(stub.text)["objects"]]
+    stub.locate_text = json.dumps(
+        {"objects": [{"local_id": ids[0], "bbox": {"x": 0.06, "y": 0.08, "w": 0.31, "h": 0.42}}, {"local_id": ids[1], "bbox": {"x": 0.62, "y": 0.08, "w": 0.31, "h": 0.42}}]}
+    )
+    procedure = client.post("/api/learnloop/procedures", json={"name": "Appearance"}).json()["id"]
+    run = _analyze(client, _upload(client, procedure, _two_colour_video(tmp / "demo.mp4"), "demonstration"))
+    assert run["status"] == "completed", run["error"]
+
+    views = client.get(f"/api/learnloop/runs/{run['id']}/objects").json()
+    assert views["appearance"]["used"] is True
+    track = views["objects"][ids[0]]["track"]
+    # The drifted boxes (on the blue square, x ~ 0.62) are kept in raw_tracks.json and never drawn.
+    assert track and all(row["x"] < 0.5 for row in track)
+    assert {row["status"] for row in track} <= A.SHOWN
+    raw = json.loads((object_views.views_dir(run["id"]) / "raw_tracks.json").read_text())["sightings"][ids[0]]
+    assert len(raw) == 24 and any(row["status"] == "rejected" and row["box"]["x"] > 0.5 for row in raw)
+
+    template = client.post(f"/api/learnloop/procedures/{procedure}/learn", json={"run_id": run["id"]}).json()
+    assert template["appearance"]["status"] in {"ready", "partial"}
+    manifest, vectors = A.read_gallery(run["id"])
+    references = manifest["objects"][ids[0]]["references"]
+    assert references and all(ref["box"]["x"] < 0.5 for ref in references)
+    assert vectors[ids[0]].shape[1] == 8
+
+    from app.db import SessionLocal
+    from app.models.runs import Job
+    from app.services.appearance import APPEARANCE_JOB
+
+    again = client.post(f"/api/learnloop/procedures/{procedure}/learn", json={"run_id": run["id"]}).json()
+    assert again["id"] == template["id"]
+    with SessionLocal() as session:
+        # The gallery was already made with the views, so learning queued no rebuild, twice.
+        assert session.query(Job).filter(Job.from_stage == APPEARANCE_JOB).count() == 0
+
+
+def test_a_missing_gallery_is_rebuilt_once_from_stored_answers_and_the_procedure_survives(lab, monkeypatch):  # noqa: F811
+    from app.config import settings
+    from app.db import SessionLocal
+    from app.models.runs import Job
+    from app.pipeline import appearance_stage, object_views
+    from app.services.appearance import APPEARANCE_JOB
+
+    from tests.test_learnloop_flow import _run_job
+
+    client, stub, tmp = lab
+    monkeypatch.setattr(settings, "object_views", True)
+    monkeypatch.setattr(object_views, "_low_rate_copy", lambda source, dest: source)
+    sam_calls = []
+
+    class FakeSam:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def segment_video(self, media, prompt, **kwargs):
+            sam_calls.append(prompt)
+            return SimpleNamespace(text=_sam_answer(24), file_id="f", request_id="r", input_tokens=0, output_tokens=0, latency_ms=1)
+
+    monkeypatch.setattr(object_views, "SamAdapter", FakeSam)
+    ids = [item["local_id"] for item in json.loads(stub.text)["objects"]]
+    stub.locate_text = json.dumps({"objects": [{"local_id": ids[0], "bbox": {"x": 0.06, "y": 0.08, "w": 0.31, "h": 0.42}}]})
+
+    def unavailable(*args):
+        from app.perception.types import EncoderUnavailable
+
+        raise EncoderUnavailable("PyTorch is not installed.")
+
+    # DINOv2 missing while the demonstration is analyzed: the analysis and the procedure are unaffected.
+    monkeypatch.setattr(appearance_stage, "shared_encoder", unavailable)
+    procedure = client.post("/api/learnloop/procedures", json={"name": "Rebuild"}).json()["id"]
+    run = _analyze(client, _upload(client, procedure, _two_colour_video(tmp / "demo.mp4"), "demonstration"))
+    assert run["status"] == "completed"
+    views = client.get(f"/api/learnloop/runs/{run['id']}/objects").json()
+    assert views["appearance"]["used"] is False and "PyTorch" in views["appearance"]["error"]
+    assert {row["status"] for row in views["objects"][ids[0]]["track"]} == {"provisional"}
+
+    template = client.post(f"/api/learnloop/procedures/{procedure}/learn", json={"run_id": run["id"]}).json()
+    assert template["id"] and template["appearance"]["status"] == "building"
+    client.post(f"/api/learnloop/procedures/{procedure}/learn", json={"run_id": run["id"]})
+    with SessionLocal() as session:
+        assert session.query(Job).filter(Job.from_stage == APPEARANCE_JOB).count() == 1
+
+    # The encoder is back. The job replays the stored SAM answer: no new request is sent.
+    monkeypatch.setattr(appearance_stage, "shared_encoder", lambda *args: ColorEncoder())
+    sent = len(sam_calls)
+    _run_job(run["id"])
+    assert len(sam_calls) == sent
+    page = client.get(f"/api/learnloop/procedures/{procedure}").json()
+    assert page["template"]["appearance"]["status"] in {"ready", "partial"}
+
+
+def _scored(own, rival=0.1, source="window", x=0.4, rival_id="b"):
+    return {"source": source, "box": {"x": x, "y": 0.4, "w": 0.1, "h": 0.1}, "own": own, "rival": rival_id, "rival_score": rival}
+
+
+def test_recovery_reseeds_only_one_clear_candidate():
+    from app.pipeline.appearance_stage import _decide
+
+    labels = {"a": "red block", "b": "blue block"}
+    background = [_scored(0.2, x=0.1 + 0.02 * index) for index in range(6)]
+    assert _decide([_scored(0.8), *background], "a", labels, OPTIONS)["decision"] == "reseed"
+    # Two separate places match as well as each other: which one is the object is not known.
+    two = _decide([_scored(0.8), _scored(0.79, x=0.8), *background], "a", labels, OPTIONS)
+    assert two["decision"] == "unresolved" and two["reason"] == "two_places_match_equally"
+    assert _decide([_scored(0.5), *background], "a", labels, OPTIONS)["reason"] == "no_candidate_matches"
+    # Everything nearby scores high: the match is the background or the colour.
+    flat = [_scored(0.8 - 0.001 * index, x=0.4 + 0.001 * index) for index in range(7)]
+    assert _decide(flat, "a", labels, OPTIONS)["reason"] == "does_not_stand_out"
+    assert _decide([_scored(0.8, rival=0.78), *background], "a", labels, OPTIONS)["reason"].startswith("best_candidate_also_looks_like")
+    assert _decide([_scored(0.8, source="track:b"), *background], "a", labels, OPTIONS)["reason"] == "best_candidate_is_tracked_as:b"
+
+
+def _drift_flow(lab, monkeypatch, answer_for_recovery, budget=1):  # noqa: F811
+    from app.config import settings
+    from app.pipeline import appearance_stage, object_views
+
+    client, stub, tmp = lab
+    monkeypatch.setattr(settings, "object_views", True)
+    monkeypatch.setattr(settings, "recovery_max_sam_requests", budget)
+    monkeypatch.setattr(appearance_stage, "shared_encoder", lambda *args: ColorEncoder())
+    monkeypatch.setattr(object_views, "_low_rate_copy", lambda source, dest: source)
+    calls = []
+
+    class FakeSam:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def segment_video(self, media, prompt, **kwargs):
+            calls.append((prompt, kwargs))
+            text = answer_for_recovery(prompt) if kwargs.get("propagation_direction") == "forward" else _sam_answer(24, drift_from=14)
+            return SimpleNamespace(text=text, file_id="f", request_id="r", input_tokens=0, output_tokens=0, latency_ms=1)
+
+    monkeypatch.setattr(object_views, "SamAdapter", FakeSam)
+    ids = [item["local_id"] for item in json.loads(stub.text)["objects"]]
+    stub.locate_text = json.dumps(
+        {"objects": [{"local_id": ids[0], "bbox": {"x": 0.06, "y": 0.08, "w": 0.31, "h": 0.42}}, {"local_id": ids[1], "bbox": {"x": 0.62, "y": 0.08, "w": 0.31, "h": 0.42}}]}
+    )
+    procedure = client.post("/api/learnloop/procedures", json={"name": "Recovery"}).json()["id"]
+    run = _analyze(client, _upload(client, procedure, _two_colour_video(tmp / "demo.mp4"), "demonstration"))
+    views = client.get(f"/api/learnloop/runs/{run['id']}/objects").json()
+    return views, ids, calls
+
+
+def _follow_red(prompt):
+    """The forward request from the recovery seed: SAM follows the red square under the new id."""
+    track = prompt.split("<|box;")[0].rsplit(">", 1)[-1] if "<|box;" in prompt else "2"
+    import re
+
+    found = re.search(r"(\d+)<\|box", prompt)
+    track = found.group(1) if found else track
+    return "\n".join(f"<{frame}f>{track}<|box;x1=10;y1=10;x2=60;y2=60;w=160;h=120;c=0.9|><|mask;data=|>" for frame in range(10))
+
+
+def test_a_drifted_track_is_recovered_with_one_more_sam_request(lab, monkeypatch):  # noqa: F811
+    views, ids, calls = _drift_flow(lab, monkeypatch, _follow_red)
+    recovery = views["recovery"]
+    assert recovery["attempted"] and recovery["requests"] == 1 and recovery["recovered_sightings"] > 0
+    assert [call[1].get("propagation_direction") for call in calls].count("forward") == 1
+    track = views["objects"][ids[0]]["track"]
+    assert any(row["status"] == "recovered" for row in track)
+    # Every drawn box is on the red square; the drifted ones stay out.
+    assert all(row["x"] < 0.5 for row in track)
+
+
+def test_recovery_that_drifts_again_is_not_accepted(lab, monkeypatch):  # noqa: F811
+    def follow_blue(prompt):
+        import re
+
+        track = re.search(r"(\d+)<\|box", prompt).group(1)
+        return "\n".join(f"<{frame}f>{track}<|box;x1=100;y1=10;x2=150;y2=60;w=160;h=120;c=0.9|><|mask;data=|>" for frame in range(10))
+
+    views, ids, calls = _drift_flow(lab, monkeypatch, follow_blue)
+    assert views["recovery"]["recovered_sightings"] == 0
+    assert not any(row["status"] == "recovered" for row in views["objects"][ids[0]]["track"])
+
+
+def test_a_recovery_that_cannot_be_checked_keeps_the_first_pass(lab, monkeypatch):  # noqa: F811
+    from app.pipeline import appearance_stage
+
+    real = appearance_stage.check_tracks
+    seen = []
+
+    def failing_second_check(**kwargs):
+        seen.append(kwargs["mode"])
+        if len(seen) > 1:
+            raise RuntimeError("frame read failed")
+        return real(**kwargs)
+
+    monkeypatch.setattr(appearance_stage, "check_tracks", failing_second_check)
+    views, ids, calls = _drift_flow(lab, monkeypatch, _follow_red)
+    recovery = views["recovery"]
+    assert len(seen) == 2 and recovery["recovered_sightings"] == 0 and "frame read failed" in recovery["error"]
+    # The views were still made from the first pass, with the drifted boxes left out.
+    track = views["objects"][ids[0]]["track"]
+    assert track and all(row["x"] < 0.5 for row in track)
+
+
+def test_no_recovery_request_is_sent_when_the_budget_is_spent(lab, monkeypatch):  # noqa: F811
+    views, ids, calls = _drift_flow(lab, monkeypatch, _follow_red, budget=0)
+    assert [call[1].get("propagation_direction") for call in calls].count("forward") == 0
+    assert views["recovery"]["recovered_sightings"] == 0 and views["recovery"]["unresolved"] >= 1
+
+
+def test_an_attempt_is_checked_against_the_procedures_references_which_it_never_changes(lab, monkeypatch):  # noqa: F811
+    from app.config import settings
+    from app.pipeline import appearance_stage, object_views
+
+    client, stub, tmp = lab
+    monkeypatch.setattr(settings, "object_views", True)
+    monkeypatch.setattr(appearance_stage, "shared_encoder", lambda *args: ColorEncoder())
+    monkeypatch.setattr(object_views, "_low_rate_copy", lambda source, dest: source)
+    answers = iter([_sam_answer(24), _sam_answer(24, drift_from=12)])
+
+    class FakeSam:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def segment_video(self, media, prompt, **kwargs):
+            return SimpleNamespace(text=next(answers), file_id="f", request_id="r", input_tokens=0, output_tokens=0, latency_ms=1)
+
+    monkeypatch.setattr(object_views, "SamAdapter", FakeSam)
+    ids = [item["local_id"] for item in json.loads(stub.text)["objects"]]
+    stub.locate_text = json.dumps(
+        {"objects": [{"local_id": ids[0], "bbox": {"x": 0.06, "y": 0.08, "w": 0.31, "h": 0.42}}, {"local_id": ids[1], "bbox": {"x": 0.62, "y": 0.08, "w": 0.31, "h": 0.42}}]}
+    )
+    procedure = client.post("/api/learnloop/procedures", json={"name": "Attempt"}).json()["id"]
+    demo = _analyze(client, _upload(client, procedure, _two_colour_video(tmp / "demo.mp4"), "demonstration"))
+    template = client.post(f"/api/learnloop/procedures/{procedure}/learn", json={"run_id": demo["id"]}).json()
+    template = client.patch(f"/api/workflow-templates/{template['id']}", json={"acceptance_status": "accepted"}).json()
+    before = json.loads((A.gallery_dir(demo["id"]) / "manifest.json").read_text())
+
+    attempt = _analyze(client, _upload(client, procedure, _two_colour_video(tmp / "attempt.mp4", frames=24), "execution"))
+    assert attempt["status"] == "completed", attempt["error"]
+    views = client.get(f"/api/learnloop/runs/{attempt['id']}/objects").json()
+    assert views["appearance"]["mode"] == "execution" and views["appearance"]["used"]
+    assert views["gallery"]["gallery_id"] == before["gallery_id"]
+    # The attempt's drifted boxes are caught by the demonstration's references.
+    assert all(row["x"] < 0.5 for row in views["objects"][ids[0]]["track"])
+    assert not A.gallery_dir(attempt["id"]).exists()
+    assert json.loads((A.gallery_dir(demo["id"]) / "manifest.json").read_text()) == before
+    response = client.post(f"/api/learnloop/templates/{template['id']}/verify", json={"run_id": attempt["id"]})
+    assert response.status_code == 200, response.text
+    report = response.json()
+    appearance = report["report"]["appearance"]
+    assert appearance["used"] and appearance["gallery"]["gallery_id"] == before["gallery_id"]
+    # Appearance is identity evidence only: no step's basis or evidence comes from it.
+    assert all(item["provenance"] != "APPEARANCE" for step in report["report"]["steps"] for item in step["evidence"])
+
+
+def test_an_attempt_track_that_never_looks_like_its_part_is_rejected_whole():
+    # Seen live: "clear stud" boxes followed a fingertip, the pin, then the whole assembly; the stud never appeared.
+    rows = {
+        "stud": [{"own": value, "reading": "weak", "status": "provisional", "reason": "weak_match"} for value in (0.45, 0.53, 0.58, 0.34)],
+        "wheel": [{"own": value, "reading": reading, "status": "provisional", "reason": ""} for value, reading in ((0.82, "ambiguous"), (0.3, "unlike"), (0.35, "unlike"))],
+        "pin": [{"own": None, "reading": "unchecked", "status": "provisional", "reason": "too_small_to_check"}] * 5,
+    }
+    A.reject_never_matched(rows, OPTIONS)
+    assert {row["status"] for row in rows["stud"]} == {"rejected"} and rows["stud"][0]["reason"] == A.NEVER_MATCHED
+    assert {row["status"] for row in rows["wheel"]} == {"provisional"}
+    # Nothing could be judged, so nothing is called wrong.
+    assert {row["status"] for row in rows["pin"]} == {"provisional"}
+
+
+def test_an_object_whose_every_box_was_rejected_renders_as_not_found(tmp_path, monkeypatch):
+    # Seen live: the whole "clear stud" track was rejected, and drawing the views failed on the empty track.
+    from app.pipeline import object_views
+    from app.providers.sam import SamRecord
+    from app.schemas.analysis import AnalysisDocument
+
+    monkeypatch.setattr(object_views, "views_dir", lambda run_id: tmp_path)
+    media = _two_colour_video(tmp_path / "clip.mp4", frames=12)
+    record = SamRecord(0, "0", 10, 10, 60, 60, 160, 120, 0.9, "", "")
+    rejected = object_views.Sighting(0.0, {"x": 0.06, "y": 0.08, "w": 0.31, "h": 0.42}, record, status="rejected")
+    document = AnalysisDocument.model_validate({"objects": [{"local_id": "stud", "label": "clear stud"}]})
+    manifest = object_views._render("run", document, media, {"stud": [rejected]}, 0.9)
+    assert manifest["objects"]["stud"]["track"] == [] and manifest["objects"]["stud"]["seen_cells"] == 0

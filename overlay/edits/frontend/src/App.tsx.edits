@@ -1,0 +1,26 @@
+# LearnLoop hackathon edit script v1
+# path: frontend/src/App.tsx
+# base-sha256: 81534d3601e9ea78a9f0c4251a5e6f63445343f9c8c3993cec0b5166a25def4a
+# result-sha256: be66351b93dba87931e0400eafc97816f60fdbe43fd1224d8539e7a18cec005e
+@@ -2,2 +2,1 @@
++import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+@@ -5,16 +4,4 @@
++import { LabPage, LegacyLabRedirect } from "./pages/Lab";
++import { LabBatchPage } from "./pages/LabBatch";
++import { LabRunPage } from "./pages/LabRun";
++import { ProcedurePage } from "./pages/Procedure";
+@@ -22,6 +9,2 @@
++import { TeachPage } from "./pages/Teach";
++import { VerifyPage } from "./pages/Verify";
+@@ -34,26 +17,11 @@
++          <Route path="/" element={<ProjectsPage />} />
++          <Route path="/procedures/:id/teach" element={<TeachPage />} />
++          <Route path="/procedures/:id/procedure" element={<ProcedurePage />} />
++          <Route path="/procedures/:id/verify" element={<VerifyPage />} />
++          <Route path="/procedures/:id/lab" element={<LabPage />} />
++          <Route path="/procedures/:id/lab/:batchId" element={<LabBatchPage />} />
++          <Route path="/procedures/:id/lab/:batchId/runs/:runId" element={<LabRunPage />} />
++          <Route path="/lab" element={<Navigate to="/" replace />} />
++          <Route path="/lab/:batchId" element={<LegacyLabRedirect />} />
++          <Route path="/lab/:batchId/runs/:runId" element={<LegacyLabRedirect />} />
++          <Route path="*" element={<Navigate to="/" replace />} />

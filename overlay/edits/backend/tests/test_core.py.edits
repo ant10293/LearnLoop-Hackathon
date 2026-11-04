@@ -1,0 +1,145 @@
+# LearnLoop hackathon edit script v1
+# path: backend/tests/test_core.py
+# base-sha256: f1eef9d1744ac95e1927973a56ca1499d377a44a1426808ee2d4059571c79089
+# result-sha256: 8bfed7807663c1d4f50f289c7b63af3a0cb9ac6a71bb7b13a5a995dd0916c789
+@@ -3,2 +3,1 @@
++
+@@ -6,0 +6,1 @@
++from app.providers.sam import parse_sam_output
+@@ -9,3 +9,2 @@
++from app.video.probe import parse_presentation_times, snap_timestamps
++from app.video.sampling import budget_indices, distinct_moments, plan_uniform, uniform_targets
+@@ -18,0 +18,5 @@
++def test_presentation_times_keep_the_first_csv_field():
++    stdout = "0.000000,,,,\nN/A\n21.935000,,,,\nnot-a-time\n"
++    assert parse_presentation_times(stdout) == [0.0, 21.935]
++
++
+@@ -27,1 +31,1 @@
++    assert [frame.timestamp for frame in frames] == [0.0, 1.0]
+@@ -30,0 +35,47 @@
++def test_closing_sample_stays_on_the_last_picture():
++    pts = [float(index) for index in range(22)] + [21.935]
++    frames = plan_uniform(21.951667, 1.0, pts)
++    assert frames[-1].timestamp == 21.935
++
++
++def test_one_hertz_grid_includes_a_partial_final_second():
++    pts = [float(index) for index in range(22)] + [21.918]
++    frames = plan_uniform(21.952, 1.0, pts)
++    stamps = [frame.timestamp for frame in frames]
++    assert stamps[0] == 0.0
++    assert 21.0 in stamps
++    assert stamps[-1] == 21.918
++
++
++def test_exact_grid_endpoint_is_sampled():
++    frames = plan_uniform(2.0, 2.0, [0.0, 0.5, 1.0, 1.5, 1.967])
++    assert [frame.timestamp for frame in frames] == [0.0, 0.5, 1.0, 1.5, 1.967]
++
++
++def test_short_tail_does_not_add_another_sample():
++    frames = plan_uniform(1.02, 1.0, [0.0, 1.0])
++    assert [frame.timestamp for frame in frames] == [0.0, 1.0]
++
++
++def test_frames_two_milliseconds_apart_are_one_moment():
++    class Frame:
++        def __init__(self, timestamp: float) -> None:
++            self.timestamp = timestamp
++
++    frames = [Frame(float(second)) for second in range(22)]
++    frames += [Frame(second + 0.002) for second in range(10, 22)]
++    frames.append(Frame(21.935))
++    kept = [frame.timestamp for frame in distinct_moments(frames)]
++    assert 14.0 in kept
++    assert 14.002 not in kept
++    assert kept[-1] == 21.935
++    assert len(kept) == 23
++
++
++def test_frame_budget_keeps_the_closing_sample():
++    indexes = budget_indices(50, 48)
++    assert indexes[0] == 0
++    assert indexes[-1] == 49
++    assert len(indexes) <= 48
++
++
+@@ -38,14 +88,0 @@
+@@ -78,48 +114,0 @@
+@@ -130,1 +119,6 @@
++    assert "one start and one end is one action" in ACTIONS
++    assert "inserted state" in ACTIONS
++    assert "Do not paraphrase that action as handle, bring, or inspect." in WORKFLOW
++    assert "Do not keep an id alive" in FOUNDATIONAL
++    assert "rotated or partly covered part" in SCENE
++    assert "Do not make a step depend on itself" in WORKFLOW
+@@ -189,5 +183,68 @@
++def test_an_observation_timestamp_is_its_frame_reference():
++    document = AnalysisDocument.model_validate(
++        {
++            "objects": [{"local_id": "Object_1", "label": "part"}],
++            "observations": [
++                {
++                    "object_local_id": "Object_1",
++                    "timestamp": 1.25,
++                    "evidence": {
++                        "classification": "DIRECTLY_OBSERVED",
++                        "provenance": "AI_PREDICTION",
++                    },
++                }
++            ],
++        }
++    )
++    issues = validate_document(document, 10)
++    assert not any(issue.code == "observation_without_evidence" for issue in issues)
++    assert document.observations[0].evidence.frame_timestamps == [1.25]
++
++
++def test_a_step_that_depends_on_itself_is_dropped():
++    document = AnalysisDocument.model_validate(
++        {
++            "objects": [{"local_id": "Object_1", "label": "part"}],
++            "workflow_steps": [
++                {
++                    "local_id": "Step_1",
++                    "name": "Reposition the part",
++                    "evidence": _evidence(),
++                }
++            ],
++            "dependencies": [
++                {
++                    "from_step": "Step_1",
++                    "to_step": "Step_1",
++                    "category": "observed_temporal",
++                    "rationale": "Single continuous workflow step.",
++                    "evidence": _evidence(),
++                }
++            ],
++        }
++    )
++    issues = validate_document(document, 21.952)
++    codes = [issue.code for issue in issues]
++    assert codes.count("self_dependency") == 1
++    assert "cyclic_dependency" not in codes
++    assert document.dependencies == []
++    dropped = next(issue for issue in issues if issue.code == "self_dependency")
++    assert dropped.severity == "warning"
++
++
++def test_prompt_family_stays_visible_and_secrets_stay_hidden():
++    from app.api.serialize import _public_config
++
++    public = _public_config({
++        "prompt_key": "scene",
++        "api_key": "secret",
++        "credentials": {"token": "nope"},
++        "sampling_preset": "standard",
++        "perception": {"preset": "B_temporal"},
++    })
++    assert public["prompt_key"] == "scene"
++    assert public["perception"]["preset"] == "B_temporal"
++    assert "api_key" not in public
++    assert "credentials" not in public
++
++

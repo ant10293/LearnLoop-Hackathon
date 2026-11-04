@@ -1,0 +1,92 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/services/materialize.py
+# base-sha256: 5b2cbe9c15f857692e336d7d9527da79a3f51c81d7622a0eb529f145c8319a6e
+# result-sha256: cfc89d3525242a8da39e7fd079d1b906638f663a6e3ad93b550c1ca7cae869e3
+@@ -4,0 +5,1 @@
++import os
+@@ -31,0 +33,1 @@
++from app.video.probe import VideoError
+@@ -83,0 +86,1 @@
++            confidence=item.confidence,
+@@ -88,0 +92,4 @@
++            association_status=item.association_status or "",
++            source_model=item.source_model or "",
++            request_id=item.request_id or "",
++            mask_ref=item.mask_ref or "",
+@@ -93,1 +100,5 @@
++        obj.observation_count = sum(
++            1
++            for obs in observations[obj.local_id]
++            if obs.bbox_json and obs.visibility != "absent"
++        )
+@@ -266,2 +277,4 @@
++    # SAM adds thousands of observations on a few stored frames. Decode each frame
++    # once and hold one at a time, because a 4K frame is about 25 MB in memory.
++    by_frame: dict[str, list[tuple[int, ObjectObservation]]] = {}
++    for position, obs in enumerate(observations):
+@@ -270,4 +283,5 @@
++        if obs.frame_id in by_id:
++            by_frame.setdefault(obs.frame_id, []).append((position, obs))
++    ranked: list[tuple[int, float, ObjectObservation]] = []
++    for frame_id, members in by_frame.items():
++        path = data_path(*Path(by_id[frame_id].path).parts)
+@@ -277,12 +291,13 @@
++        for position, obs in members:
++            bbox = BBox.model_validate(obs.bbox_json)
++            crop = _crop(image, bbox)
++            if crop.size == 0:
++                continue
++            sharp = sharpness_score(crop)
++            area = bbox.w * bbox.h
++            vis = {"visible": 1.0, "partial": 0.55, "occluded": 0.2}.get(obs.visibility, 0.4)
++            occ = obs.occlusion or 0
++            score = sharp * (0.15 + area) * vis * (1 - min(occ, 0.9))
++            obs.sharpness = sharp
++            ranked.append((position, score, obs))
++    if not ranked:
+@@ -289,0 +305,2 @@
++    ranked.sort(key=lambda item: item[0])
++    scored = [(score, obs) for _position, score, obs in ranked]
+@@ -291,1 +307,0 @@
+@@ -295,2 +311,2 @@
++        "primary": scored[0],
++        "unobstructed": scored[0],
+@@ -305,1 +321,3 @@
++    for kind, (score, obs) in kinds.items():
++        image = read_bgr(data_path(*Path(by_id[obs.frame_id].path).parts))
++        crop = _crop(image, BBox.model_validate(obs.bbox_json))
+@@ -342,0 +361,34 @@
++def cached_observation_crop(session: Session, observation_id: str) -> Path:
++    """Zoomed still of one observation: the boxed region of its frame, with a little margin.
++
++    The file is written once and reused. Curated stills only keep unobstructed, initial,
++    final, and alternate, so the object detail asks for the rest through this path.
++    """
++    dest = data_path("cache", "observation-crops", f"{observation_id}.jpg")
++    if dest.is_file() and dest.stat().st_size > 0:
++        return dest
++    obs = session.get(ObjectObservation, observation_id)
++    if obs is None or not obs.bbox_json or not obs.frame_id:
++        raise ValueError("observation has no frame crop")
++    frame = session.get(FrameAsset, obs.frame_id)
++    if frame is None:
++        raise ValueError("observation frame is missing")
++    path = data_path(*Path(frame.path).parts)
++    if not path.is_file():
++        raise ValueError("observation frame is missing")
++    try:
++        image = read_bgr(path)
++    except VideoError as exc:
++        raise ValueError("observation frame could not be read") from exc
++    crop = _crop(image, BBox.model_validate(obs.bbox_json))
++    if crop.size == 0:
++        raise ValueError("observation crop is empty")
++    dest.parent.mkdir(parents=True, exist_ok=True)
++    tmp = dest.with_name(f".{observation_id}.{os.getpid()}.jpg")
++    if not cv2.imwrite(str(tmp), crop, [int(cv2.IMWRITE_JPEG_QUALITY), 90]):
++        tmp.unlink(missing_ok=True)
++        raise ValueError("observation crop could not be written")
++    tmp.replace(dest)
++    return dest
++
++

@@ -1,0 +1,64 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/api/routes.py
+# base-sha256: 3b22caa1aa39131757e019837d16aad001e33c78cbb1b21b1709debe03cd8bf2
+# result-sha256: 4fdbc37f62d561884c4d968ffdb3493acc9f230d83ab379e196fd86eb05253c3
+@@ -8,3 +8,3 @@
++from fastapi import APIRouter, Depends, HTTPException
++from fastapi.responses import FileResponse
++from sqlalchemy import delete, func, or_, select
+@@ -14,1 +13,0 @@
+@@ -16,2 +14,0 @@
+@@ -20,2 +16,0 @@
+@@ -32,1 +26,0 @@
+@@ -36,1 +29,0 @@
+@@ -38,7 +30,0 @@
+@@ -55,38 +40,0 @@
+@@ -94,2 +41,0 @@
+@@ -97,3 +42,0 @@
+@@ -102,1 +45,2 @@
++from app.services.locate import locate_dropped_video
++from app.services.storage import data_path, is_external, resolve_stored
+@@ -120,92 +64,1 @@
++    return {"ok": True, "version": __version__, "name": "LearnLoop"}
+@@ -339,37 +191,0 @@
+@@ -389,3 +205,2 @@
++@router.post("/videos/locate")
++def locate_video(payload: dict) -> dict:
+@@ -394,4 +209,1 @@
++    name = str(payload.get("name") or "")
+@@ -399,5 +211,6 @@
++        size = int(payload["size"])
++        mtime_ms = int(payload["mtime_ms"])
++    except (KeyError, TypeError, ValueError) as exc:
++        raise HTTPException(400, "size and modification time are required") from exc
++    try:
++        path = locate_dropped_video(name, size, mtime_ms)
+@@ -406,108 +219,1 @@
++    return {"path": str(path)}
+@@ -526,2 +232,11 @@
++    stored_paths = [video.stored_path, video.proxy_path, video.thumbnail_path, video.contact_sheet_path]
++    session.delete(video)
++    session.commit()
++    # The same file uploaded twice shares its original and proxy, named by checksum. Keep any another video still uses.
++    for stored in {path for path in stored_paths if path and not is_external(path)}:
++        remaining = session.scalar(
++            select(func.count()).select_from(VideoAsset).where(
++                or_(VideoAsset.stored_path == stored, VideoAsset.proxy_path == stored)
++            )
++        ) or 0
++        if remaining:
+@@ -532,2 +246,0 @@
+@@ -566,0 +280,11 @@
++@router.get("/media/masks/{mask_id}")
++def media_mask(mask_id: str, session: Session = Depends(db)) -> FileResponse:
++    row = session.get(SegmentationMask, mask_id)
++    if row is None or not row.path:
++        raise HTTPException(404, "mask not found")
++    path = resolve_stored(row.path)
++    if not path.exists():
++        raise HTTPException(404, "mask file missing")
++    return FileResponse(path)
++
++
+@@ -575,193 +298,0 @@
+@@ -779,375 +309,0 @@

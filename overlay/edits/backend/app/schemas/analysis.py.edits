@@ -1,0 +1,109 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/schemas/analysis.py
+# base-sha256: 39d0bf4994ab854162519063a6526b79956d05a0340e2b63a513ec4d2cbcb880
+# result-sha256: 4ada650313b73c1abe5c42a15ff0d2ebc1b4a67232d3ac0c8469d3452c320212
+@@ -9,1 +9,2 @@
++from pydantic import BaseModel, ConfigDict, Field, field_validator
++from pydantic.json_schema import SkipJsonSchema
+@@ -73,0 +75,22 @@
++    # Everything below is empty on documents written before the source timeline.
++    time_start: float | None = None
++    time_end: float | None = None
++    # "presentation" when frame times came from the file, "container" when estimated.
++    time_basis: str = ""
++    # Largest unexamined stretch between frames the semantic model received.
++    max_gap_sec: float | None = None
++    uncovered_gaps: list[list[float]] = Field(default_factory=list)
++    motion_frames: int = 0
++    candidate_peaks: list[float] = Field(default_factory=list)
++    selected_peaks: list[float] = Field(default_factory=list)
++    budget_exclusions: int = 0
++    scene_boundaries: list[dict] = Field(default_factory=list)
++    # "provisional" until tracking has run, then "final".
++    semantic_selection: str = ""
++    selection_swaps: list[dict] = Field(default_factory=list)
++    # "combined" or "grounded". Calls counts language-model requests for semantics.
++    semantic_mode: str = ""
++    semantic_calls: int | None = None
++    tracking: dict = Field(default_factory=dict)
++    segmentation: dict = Field(default_factory=dict)
++    media_transforms: list[dict] = Field(default_factory=list)
+@@ -88,0 +112,7 @@
++    # How the object was bound to a physical instance. Empty on older documents.
++    # "associated" needs repeated overlap on shared times; "referenced" means the
++    # model named a tracked id it was shown; "ambiguous", "weak", and
++    # "unmatched" leave instance_id unset unless the model named one.
++    association_status: str = ""
++    association_score: float | None = None
++    association_rivals: list[str] = Field(default_factory=list)
+@@ -99,0 +130,2 @@
++    # The model's own score that this box is this object. Not a measured probability.
++    confidence: float | None = None
+@@ -104,0 +137,29 @@
++    # SAM association is scoped to one tracking response. Empty on older documents.
++    association_status: str = ""
++    source_model: str = ""
++    request_id: str = ""
++    mask_ref: str = ""
++    # Evidence resolution. Every field below is empty on older documents, which
++    # still display as they were stored.
++    # "raw" is one producer's output. "canonical" is the resolved geometry for
++    # an instance at one time.
++    observation_role: str = ""
++    # "detected", "optical_flow", "vlm_estimated", or "unobserved".
++    geometry_origin: str = ""
++    # The component that produced the box: a detector id, "sam-3.1", "vlm", or "human".
++    geometry_authority: str = ""
++    # Separate uncertainties. None of them is a probability.
++    # detection: "proposal", "detected", "mask", or "none". Flow is not a detection.
++    detection_support: str = ""
++    # association to a physical instance: "unmatched", "weak", "ambiguous", "referenced", "associated".
++    association_support: str = ""
++    # "single", "repeated", "flow_only", or "broken".
++    temporal_support: str = ""
++    # "unlabeled", "provisional", or "labeled". A label is not an identity.
++    semantic_support: str = ""
++    # Pixel size of the displayed frame the box was measured in. The box itself
++    # stays normalized to the displayed frame.
++    source_width: int | None = None
++    source_height: int | None = None
++    # Stable reference to the raw row a canonical row was resolved from.
++    evidence_ref: str = ""
+@@ -281,0 +343,29 @@
++class InterpretationResponse(BaseModel):
++    """What the grounded interpretation call is asked to return. Geometry is already resolved."""
++
++    model_config = ConfigDict(extra="forbid")
++
++    summary: str = ""
++    actions: list[ActionPrediction]
++    states: list[StatePrediction]
++    transitions: list[TransitionPrediction]
++    relationships: list[RelationshipPrediction]
++    workflow_steps: list[WorkflowStepPrediction]
++    dependencies: list[DependencyPrediction]
++    ambiguities: list[AmbiguityPrediction]
++
++
++class BoxDecision(BaseModel):
++    """A box a pipeline step removed, moved, or kept unmeasured. The box is kept as it was before that step."""
++
++    step: str
++    reason_code: str
++    outcome: Literal["dropped", "reassigned", "kept"] = "dropped"
++    object_local_id: str
++    timestamp: float | None = None
++    bbox: BBox | None = None
++    confidence: float | None = None
++    other_object_id: str | None = None
++    detail: str = ""
++
++
+@@ -289,0 +380,1 @@
++    # The resolved display set. Every consumer reads this list.
+@@ -290,0 +382,5 @@
++    # Producer outputs that the resolver did not display: superseded model
++    # estimates, unassociated or conflicting segmentation. Kept for inspection.
++    raw_observations: list[ObservationPrediction] = Field(default_factory=list)
++    # Written by the pipeline only, so it stays out of the schema sent to a model.
++    box_decisions: SkipJsonSchema[list[BoxDecision]] = Field(default_factory=list)

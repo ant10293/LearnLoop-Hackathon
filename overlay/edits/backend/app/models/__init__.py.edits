@@ -1,0 +1,21 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/models/__init__.py
+# base-sha256: 17ad97bbf0cb4945dda888ae574cbf01f3bbb3eded3a95baccbbeec28c0006d9
+# result-sha256: c60eac1e94913366052648bb38a9dbc16cf7b937a7ee5eb9af509d9199167de1
+@@ -25,0 +26,8 @@
++from app.models.product import HumanObservation, ProcedureRecording  # noqa: F401
++from app.models.recovery import (
++    RecoveryDismissal,
++    RecoveryExperiment,
++    RecoveryProposal,
++    RecoveryRequest,
++)
++from app.models.reliability import ReliabilityBatch, ReliabilityRun
+@@ -57,0 +66,4 @@
++    "RecoveryDismissal",
++    "RecoveryExperiment",
++    "RecoveryProposal",
++    "RecoveryRequest",
+@@ -91,0 +104,2 @@
++    "ReliabilityBatch",
++    "ReliabilityRun",

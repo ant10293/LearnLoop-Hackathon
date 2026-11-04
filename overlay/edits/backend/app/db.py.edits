@@ -1,0 +1,8 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/db.py
+# base-sha256: 7e2964c816521ec7a14df711e7b31986a9be1a8d58938047f8f71714386766d7
+# result-sha256: 2b7efc2024483147a5025891c295cdcde56693bb83647395c23ca3f91ad7924c
+@@ -35,1 +35,1 @@
++    cursor.execute("PRAGMA busy_timeout=30000")
+@@ -62,1 +62,1 @@
++        cursor.execute("PRAGMA busy_timeout=30000")

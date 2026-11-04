@@ -1,0 +1,20 @@
+# LearnLoop hackathon edit script v1
+# path: frontend/playwright.config.ts
+# base-sha256: cdbd6b561b1729ea956bb5b6ab79385b75e7c07ccea59980127de0dc08f12c27
+# result-sha256: 1ef9aa4eb2503ffe5406d820c26c47612aac1264cab8291802d84a5f5a852b49
+@@ -2,0 +3,1 @@
++// The API here runs with a stubbed Meta client and authored answers. See backend/tests/e2e_server.py.
+@@ -7,2 +8,3 @@
++    baseURL: "http://127.0.0.1:5199",
++    screenshot: "on",
++    trace: "retain-on-failure",
+@@ -12,4 +14,3 @@
++      command: "rm -rf ../data/e2e && ../backend/.venv/bin/python ../backend/tests/e2e_server.py",
++      url: "http://127.0.0.1:8199/api/health",
++      timeout: 120_000,
+@@ -17,6 +17,0 @@
+@@ -25,2 +20,2 @@
++      command: "npm run dev -- --host 127.0.0.1 --port 5199 --strictPort",
++      url: "http://127.0.0.1:5199",
+@@ -27,0 +23,1 @@
++      env: { LEARNLOOP_API_ORIGIN: "http://127.0.0.1:8199" },

@@ -1,0 +1,10 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/models/runs.py
+# base-sha256: ca61730983fc5dfd285bc591c6ea9965327fdc418b3353415b3ca62b500ce446
+# result-sha256: d955654c0f496cdec71588d6a95bda5215cd2ad71985f6c96aec4485196fd038
+@@ -8,1 +8,1 @@
++from sqlalchemy import Boolean, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
+@@ -40,0 +41,1 @@
++    __table_args__ = (Index("uq_manual_model_provider_model", "provider_id", "model_id", unique=True),)
+@@ -91,0 +93,1 @@
++    starred: Mapped[bool] = mapped_column(Boolean, default=False)

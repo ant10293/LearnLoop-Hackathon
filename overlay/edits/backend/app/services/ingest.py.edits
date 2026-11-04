@@ -1,0 +1,47 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/services/ingest.py
+# base-sha256: 8cd4a4ada68d7e7dff7658e86e856403c957daf9868556426cdb87de4759ac5e
+# result-sha256: d3ebc33fdaf684df232a40b8b9efdd31b1dd0c6a5ae3e24dd8e0cadf220654a3
+@@ -36,1 +36,1 @@
++from app.video.sampling import SAME_MOMENT_SEC, plan_uniform
+@@ -179,1 +179,2 @@
++        # These are upload previews. The playback file has the same times and decodes far faster than 4K.
++        extract_frame(resolve_stored(proxy_rel) if proxy_rel else original, sample.timestamp, dest, accurate=True)
+@@ -253,0 +255,5 @@
++    try:
++        video.thumbnail_path = _preview_still(dest, video.id)
++        session.commit()
++    except VideoError as exc:
++        log.warning("preview still for %s failed: %s", video.id, exc)
+@@ -556,6 +562,4 @@
++    existing = list(
++        session.scalars(select(FrameAsset).where(FrameAsset.video_id == video.id, FrameAsset.run_id == run_id))
++    )
++    used: set[str] = set()
+@@ -563,3 +567,5 @@
++        match = _closest_frame(existing, sample.timestamp, used)
++        if match is not None:
++            match.ordinal = ordinal
++            used.add(match.id)
++            rows.append(match)
+@@ -585,0 +592,1 @@
++        used.add(row.id)
+@@ -586,0 +594,3 @@
++    for frame in existing:
++        if frame.id not in used:
++            session.delete(frame)
+@@ -588,0 +599,14 @@
++
++
++def _closest_frame(frames: list[FrameAsset], timestamp: float, used: set[str]) -> FrameAsset | None:
++    """A frame a few milliseconds away is the same picture, not a second sample."""
++    best: FrameAsset | None = None
++    best_gap = SAME_MOMENT_SEC
++    for frame in frames:
++        if frame.id in used:
++            continue
++        gap = abs(float(frame.timestamp) - timestamp)
++        if gap < best_gap:
++            best = frame
++            best_gap = gap
++    return best

@@ -1,0 +1,7 @@
+# LearnLoop hackathon edit script v1
+# path: frontend/index.html
+# base-sha256: 9b9ed6bb13e1c2cd28515166cbd1e2fb9d09c7e3cf7121ee6e9ab4e2234a9eb5
+# result-sha256: 11dd4363ee7c3c5a1962b386e76e38216dd1fc0bc6a19ffdfdc0c692a6d31b92
+@@ -6,1 +6,2 @@
++    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
++    <title>LearnLoop</title>

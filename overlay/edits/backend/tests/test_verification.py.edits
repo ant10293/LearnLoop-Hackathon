@@ -1,0 +1,154 @@
+# LearnLoop hackathon edit script v1
+# path: backend/tests/test_verification.py
+# base-sha256: 5fbee8b318896f34a4f0e99f631a961e0dca18c2e007eb2a9e82565a2847efe8
+# result-sha256: c4c14a70e0bf0f5deb2bd994c57ecc8321e54f0290130a1adc772aaf8765ac64
+@@ -221,0 +222,149 @@
++
++
++def test_a_reversed_directional_arrangement_is_a_misplacement_and_an_inverse_kind_is_support():
++    demo = document(
++        objects=[obj("a", "top block", "red", "red"), obj("b", "bottom block", "blue", "blue")],
++        observations=[obs("a", 9), obs("b", 9)],
++        relationships=[rel("a", "b", "above", 3, 9)],
++        actions=[action("act", "attach", 2, 3, ["a", "b"])],
++        steps=[step("s", "Stack", ["a", "b"], ["act"], 2, 3, "Stack the blocks")],
++    )
++    template = learn_template(demo, promote_supported=True, accept=True)
++    objects = [obj("a", "top block", "red", "red"), obj("b", "bottom block", "blue", "blue")]
++    seen = [obs("a", 9), obs("b", 9)]
++    acts = [action("act", "attach", 2, 3, ["a", "b"])]
++    swapped = document(objects=objects, observations=seen, relationships=[rel("b", "a", "above", 3, 9)], actions=acts)
++    assert verify_execution(template, swapped)["steps"][0]["error_category"] == "INCORRECT_PLACEMENT"
++    inverse = document(objects=objects, observations=seen, relationships=[rel("b", "a", "below", 3, 9)], actions=acts)
++    assert verify_execution(template, inverse)["steps"][0]["verdict"] == "PASS"
++
++
++def test_steps_done_in_another_order_are_matched_to_the_action_that_moved_their_part():
++    # Seen on a real attempt: every action touching the shared base tied, so each step got another step's action.
++    demo = document(
++        objects=[obj("D_disc", "clear disc", "small clear disc", "clear"), obj("D_pin", "white pin", "short white pin", "white"), obj("D_body", "body", "white body", "white")],
++        observations=[obs("D_disc", 10), obs("D_pin", 10), obs("D_body", 10)],
++        relationships=[rel("D_disc", "D_body", "attached", 2, 20), rel("D_pin", "D_body", "attached", 6, 20)],
++        actions=[action("A_disc", "place", 0, 2, ["D_disc", "D_body"]), action("A_pin", "place", 4, 6, ["D_pin", "D_body"])],
++        steps=[
++            step("step_disc", "Attach disc", ["D_disc", "D_body"], ["A_disc"], 0, 2, "disc attached to body"),
++            step("step_pin", "Attach pin", ["D_pin", "D_body"], ["A_pin"], 4, 6, "pin attached to body"),
++        ],
++    )
++    execution = document(
++        objects=[obj("E_disc", "clear disc", "small clear disc", "clear"), obj("E_pin", "white pin", "short white pin", "white"), obj("E_body", "body", "white body", "white")],
++        observations=[obs("E_disc", 12), obs("E_pin", 12), obs("E_body", 12)],
++        relationships=[rel("E_pin", "E_body", "attached", 5, 20), rel("E_disc", "E_body", "attached", 9, 20)],
++        actions=[
++            action("X_body", "place", 0, 2, ["E_body"]),
++            action("X_pin", "place", 3, 5, ["E_pin", "E_body"]),
++            action("X_disc", "place", 7, 9, ["E_disc", "E_body"]),
++        ],
++    )
++    template = learn_template(demo, promote_supported=True, accept=True)
++    steps = _steps(verify_execution(template, execution))
++    assert steps["step_disc"]["matched_action_ids"] == ["X_disc"]
++    assert steps["step_pin"]["matched_action_ids"] == ["X_pin"]
++
++
++def _never_seen_case():
++    demo = document(
++        objects=[obj("D_stud", "clear stud", "small clear stud", "clear"), obj("D_body", "body", "white body", "white")],
++        observations=[obs("D_stud", 10), obs("D_body", 10)],
++        relationships=[rel("D_stud", "D_body", "attached", 2, 20)],
++        actions=[action("A_stud", "place", 0, 2, ["D_stud", "D_body"])],
++        steps=[step("step_stud", "Attach stud", ["D_stud", "D_body"], ["A_stud"], 0, 2, "stud attached to body")],
++    )
++    template = learn_template(demo, promote_supported=True, accept=True)
++    hidden = obs("E_stud", 12, visibility="occluded")
++    execution = document(
++        objects=[obj("E_stud", "clear stud", "small clear stud", "clear"), obj("E_body", "body", "white body", "white")],
++        observations=[hidden, obs("E_body", 12)],
++        relationships=[],
++        actions=[action("X_body", "place", 0, 2, ["E_body"])],
++    )
++    return template, execution
++
++
++def test_a_part_seen_nowhere_fails_unless_its_appearance_matched_or_the_work_was_not_shown():
++    template, execution = _never_seen_case()
++    step_result = _steps(verify_execution(template, execution))["step_stud"]
++    assert step_result["verdict"] == "FAIL" and step_result["error_category"] == "MISSING_COMPONENT"
++    # A box that matched the stud's learned appearance means it was there.
++    assert _steps(verify_execution(template, execution, appearance_seen={"E_stud"}))["step_stud"]["verdict"] == "CANNOT_VERIFY"
++    # If the part it goes on was never seen either, the recording did not show the work.
++    execution.actions = []
++    execution.observations = [item for item in execution.observations if item.object_local_id != "E_body"]
++    assert _steps(verify_execution(template, execution))["step_stud"]["verdict"] == "CANNOT_VERIFY"
++
++
++def test_both_parts_seen_nowhere_fail_as_missing_when_the_rest_of_the_attempt_was_shown():
++    # Seen live: a figure's legs, torso, and head were never in the attempt, only a motorcycle, and every
++    # "attached to" condition stayed undecided for lack of evidence.
++    template, _ = _never_seen_case()
++    execution = document(
++        objects=[obj("E_stud", "clear stud", "small clear stud", "clear"), obj("E_body", "body", "white body", "white"), obj("E_bike", "motorcycle", "red motorcycle", "red")],
++        observations=[obs("E_stud", 12, visibility="occluded"), obs("E_body", 12, visibility="occluded"), obs("E_bike", 12)],
++        relationships=[],
++        actions=[action("X_bike", "place", 0, 2, ["E_bike"])],
++    )
++    result = _steps(verify_execution(template, execution))["step_stud"]
++    assert result["verdict"] == "FAIL" and result["error_category"] == "MISSING_COMPONENT" and result["basis"] == "not_observed"
++    failed = next(item for item in result["predicates"] if item["status"] == "fail")
++    assert "Neither the" in failed["note"] and failed["evidence"][0]["object_local_ids"] == ["E_body", "E_stud"]
++
++
++def test_a_seen_part_cannot_end_up_against_a_part_seen_nowhere():
++    # Seen live: the lock washer was never in the attempt, yet "nut touching lock washer" was left undecided and a
++    # second Meta look reported a lock washer beside the nut.
++    demo = document(
++        objects=[obj("D_nut", "hex nut", "grey hex nut", "grey"), obj("D_lock", "split lock washer", "dark split lock washer ring", "dark")],
++        observations=[obs("D_nut", 10), obs("D_lock", 10)],
++        relationships=[rel("D_nut", "D_lock", "touching", 2, 20)],
++        actions=[action("A_nut", "place", 0, 2, ["D_nut", "D_lock"])],
++        steps=[step("step_nut", "Tighten nut", ["D_nut", "D_lock"], ["A_nut"], 0, 2, "nut touching lock washer")],
++    )
++    template = learn_template(demo, promote_supported=True, accept=True)
++    execution = document(
++        objects=[obj("E_nut", "hex nut", "grey hex nut", "grey"), obj("E_lock", "split lock washer", "dark split lock washer ring", "dark")],
++        observations=[obs("E_nut", 12), obs("E_lock", 12, visibility="occluded")],
++        relationships=[],
++        actions=[action("X_nut", "place", 0, 2, ["E_nut"])],
++    )
++    result = _steps(verify_execution(template, execution))["step_nut"]
++    assert result["verdict"] == "FAIL" and result["error_category"] == "MISSING_COMPONENT" and result["basis"] == "not_observed"
++    failed = next(item for item in result["predicates"] if item["status"] == "fail")
++    assert "was not seen at any point" in failed["note"] and failed["evidence"][0]["object_local_ids"] == ["E_lock"]
++    # A box that matched the lock washer's learned appearance means it was there.
++    assert _steps(verify_execution(template, execution, appearance_seen={"E_lock"}))["step_nut"]["verdict"] != "FAIL"
++
++
++def test_a_single_part_seen_nowhere_fails_only_when_another_part_was_seen():
++    from types import SimpleNamespace
++
++    from app.verification.predicates import _never_seen
++
++    predicate = SimpleNamespace(id="p1")
++    stud = SimpleNamespace(object_local_ids=["E_stud"], label="clear stud")
++    objects = [obj("E_stud", "clear stud", "small clear stud", "clear"), obj("E_body", "body", "white body", "white")]
++    # Nothing in the recording was in view: it did not show the work, so the condition stays undecided.
++    dark = document(objects=objects, observations=[obs("E_stud", 12, visibility="occluded"), obs("E_body", 12, visibility="absent")], relationships=[], actions=[])
++    assert _never_seen(predicate, dark, stud, None, set(), "v") is None
++    shown = document(objects=objects, observations=[obs("E_stud", 12, visibility="occluded"), obs("E_body", 12)], relationships=[], actions=[])
++    assert _never_seen(predicate, shown, stud, None, set(), "v").status == "fail"
++    # A part that was only handled, with no observation of its own, still shows the work was recorded.
++    handled = document(objects=objects, observations=[obs("E_stud", 12, visibility="occluded")], relationships=[], actions=[action("X_body", "place", 0, 2, ["E_body"])])
++    assert _never_seen(predicate, handled, stud, None, set(), "v").status == "fail"
++
++
++def test_a_report_reads_the_appearance_matches_it_was_made_with(monkeypatch):
++    from types import SimpleNamespace
++
++    from app.services import verification_store as store
++
++    monkeypatch.setattr(store, "_appearance_seen", lambda run_id: {"live"})
++    row = lambda report: SimpleNamespace(report_json=report, execution_run_id="r")  # noqa: E731
++    assert store._seen_when_made(row({})) == set()
++    assert store._seen_when_made(row({"appearance": {"seen": ["kept"]}})) == {"kept"}
++    # Made before matches were kept with the report: it read the views then, and still does.
++    assert store._seen_when_made(row({"appearance": {"used": True}})) == {"live"}

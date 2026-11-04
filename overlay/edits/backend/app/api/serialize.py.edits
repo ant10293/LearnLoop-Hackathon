@@ -1,0 +1,128 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/api/serialize.py
+# base-sha256: 9a46f922c46b659c4f459cd90d3a5c41a52bbd43be3b4025a0ccfdce5a8fb39b
+# result-sha256: b7c5ef20dc5f7bf279d07e44a85ba97946b67511f9325c703ca6030d73078050
+@@ -25,1 +25,2 @@
++from app.models.runs import AnalysisRevision, AnalysisRun, PipelineStageRun, PromptVersion
++from app.models.util import elapsed_seconds
+@@ -87,6 +88,4 @@
++        duration = elapsed_seconds(run.started_at, run.finished_at)
++    from app.services.costs import unpriced_call_count
++
++    unpriced_calls = unpriced_call_count(session, run.id)
+@@ -109,0 +109,1 @@
++        "starred": run.starred,
+@@ -144,0 +145,6 @@
++    config = _public_config(run.config_json or {})
++    if run.prompt_version_id:
++        prompt = session.get(PromptVersion, run.prompt_version_id)
++        if prompt is not None:
++            config["prompt_key"] = prompt.key
++            config["prompt_name"] = prompt.name
+@@ -157,1 +163,1 @@
++        "config": config,
+@@ -164,1 +170,3 @@
++        "observations": _observations(session, revision_id, (revision.document_json or {}) if revision else {}),
++        "raw_observations": _raw_observations((revision.document_json or {}) if revision else {}),
++        "box_decisions": _box_decisions((revision.document_json or {}) if revision else {}),
+@@ -194,0 +203,7 @@
++def _note_value(note: str, key: str) -> str:
++    for part in (note or "").split(";"):
++        if part.startswith(f"{key}="):
++            return part.split("=", 1)[1]
++    return ""
++
++
+@@ -213,0 +229,2 @@
++                "object_local_id": _note_value(row.identity_note, "object"),
++                "association_status": _note_value(row.identity_note, "association"),
+@@ -273,1 +290,7 @@
++    # prompt_key names a template family. Other key-like fields stay hidden.
++    revealed = {"prompt_key"}
++    return {
++        key: value
++        for key, value in config.items()
++        if key in revealed or (key not in hidden and "key" not in key.lower())
++    }
+@@ -343,1 +366,67 @@
++_PROVENANCE = (
++    "observation_role",
++    "geometry_origin",
++    "geometry_authority",
++    "detection_support",
++    "association_support",
++    "temporal_support",
++    "semantic_support",
++    "evidence_ref",
++)
++RAW_LIMIT = 4000
++
++
++def _provenance(row: dict) -> dict:
++    return {key: row.get(key) or "" for key in _PROVENANCE}
++
++
++def _provenance_index(document: dict) -> dict[tuple[str, float, str], dict]:
++    """Per-row provenance from the stored document. Database rows predate these fields."""
++    index: dict[tuple[str, float, str], dict] = {}
++    for row in document.get("observations") or []:
++        key = (row.get("object_local_id", ""), round(float(row.get("timestamp") or 0), 3), row.get("source_model") or "")
++        index.setdefault(key, _provenance(row))
++    return index
++
++
++def _raw_observations(document: dict) -> dict:
++    """Rows the display set does not show, for the perception panel. They are not a second overlay."""
++    rows = document.get("raw_observations") or []
++    return {
++        "total": len(rows),
++        "truncated": len(rows) > RAW_LIMIT,
++        "rows": [
++            {
++                "object_local_id": row.get("object_local_id", ""),
++                "timestamp": row.get("timestamp"),
++                "bbox": row.get("bbox"),
++                "visibility": row.get("visibility"),
++                "source_model": row.get("source_model") or "",
++                "track_ref": row.get("track_ref") or "",
++                "association_status": row.get("association_status") or "",
++                **_provenance(row),
++            }
++            for row in rows[:RAW_LIMIT]
++        ],
++    }
++
++
++def _box_decisions(document: dict) -> dict:
++    """Boxes pipeline steps removed or moved. Counts cover every row, including a truncated tail."""
++    rows = document.get("box_decisions") or []
++    counts: dict[tuple[str, str, str], int] = {}
++    for row in rows:
++        key = (row.get("step", ""), row.get("reason_code", ""), row.get("outcome", "dropped"))
++        counts[key] = counts.get(key, 0) + 1
++    return {
++        "total": len(rows),
++        "truncated": len(rows) > RAW_LIMIT,
++        "counts": [
++            {"step": step, "reason_code": reason, "outcome": outcome, "count": count}
++            for (step, reason, outcome), count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))
++        ],
++        "rows": rows[:RAW_LIMIT],
++    }
++
++
++def _observations(session, revision_id: str, document: dict | None = None) -> list[dict]:
+@@ -350,0 +440,2 @@
++    index = _provenance_index(document or {})
++    empty = _provenance({})
+@@ -352,0 +444,3 @@
++            **index.get(
++                (objects.get(row.object_id, ""), round(float(row.timestamp or 0), 3), row.source_model or ""), empty
++            ),
+@@ -363,0 +458,1 @@
++            "confidence": row.confidence,
+@@ -366,0 +462,4 @@
++            "association_status": row.association_status or "",
++            "source_model": row.source_model or "",
++            "request_id": row.request_id or "",
++            "mask_ref": row.mask_ref or "",

@@ -1,0 +1,26 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/providers/types.py
+# base-sha256: 7d8501dab64328f2456d458448ffc477397d9ce47fbc11a6bebe1c3e4987f6fd
+# result-sha256: 858f115e035f3d103311325b9a5f7ec78a9cd5b69d45e402c5c05f812b5eef3b
+@@ -24,0 +25,14 @@
++# Wall-clock deadline for every analysis call. Stored runs still default to 180s,
++# and that value is what the UI saves. Each provider raises a shorter request to
++# this floor. A configured timeout above it still applies.
++PROVIDER_TIMEOUT_S = 30 * 60
++
++
++# Provider requests one run may send, counted across its retries.
++DEFAULT_MAX_REQUESTS = 36
++
++
++def provider_timeout(requested: float | None = None) -> float:
++    return max(float(requested or 0), PROVIDER_TIMEOUT_S)
++
++
+@@ -47,0 +62,2 @@
++    # Why the provider stopped early, such as max_output_tokens. Empty for a finished answer.
++    incomplete_reason: str = ""
+@@ -97,0 +114,1 @@
++    schema_name: str = "learnloop_analysis"
+@@ -101,0 +119,1 @@
++    max_output_tokens: int | None = None

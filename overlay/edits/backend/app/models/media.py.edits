@@ -1,0 +1,8 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/models/media.py
+# base-sha256: 6343417fbc3612f0ecbb873b92215b7231a853968921a8133595ea1d98c9533a
+# result-sha256: 0cb81b9d2c793a8889c105b2616441440058aec96e9efad7a91ba34a70934dc2
+@@ -8,1 +8,1 @@
++from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, Text, false
+@@ -24,0 +25,1 @@
++    hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())

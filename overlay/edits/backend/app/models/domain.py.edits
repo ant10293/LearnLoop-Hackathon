@@ -1,0 +1,11 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/models/domain.py
+# base-sha256: 4354932ee6b276ad21257e18f02556fe1016bf247f08244a5fdb8035a1562d21
+# result-sha256: 40d41fe8fa35c023af2ca30d751a7d88809428468cf23605c72bf35465f9256b
+@@ -54,0 +55,1 @@
++    confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+@@ -59,0 +61,4 @@
++    association_status: Mapped[str] = mapped_column(String(32), default="")
++    source_model: Mapped[str] = mapped_column(String(80), default="")
++    request_id: Mapped[str] = mapped_column(String(120), default="")
++    mask_ref: Mapped[str] = mapped_column(String(200), default="")

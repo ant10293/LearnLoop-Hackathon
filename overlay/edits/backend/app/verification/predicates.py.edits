@@ -1,0 +1,317 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/verification/predicates.py
+# base-sha256: 454d856a5f8684379b7d17aec345370d80445f8245dc9cdc783c491c2353e84b
+# result-sha256: 16879b9ebd74c9a3cfc56dc02b052c769f259c509a123fe09bd6e71bc48dac4a
+@@ -25,0 +26,1 @@
++    appearance_seen: set[str] | None = None,
+@@ -36,0 +38,3 @@
++    missing = _never_seen(predicate, execution, subject, target, appearance_seen or set(), video_id)
++    if missing is not None:
++        return missing
+@@ -44,1 +48,1 @@
++        return _cannot(predicate, "The object this part belongs on was not identified, so a missing component is not claimed.")
+@@ -66,2 +70,21 @@
++    swapped = [
++        item for item in _reversed_relations(execution, predicate.relation, subject_ids, target_ids)
++        if item.time_end >= window[0] - 1e-6
++    ]
++    if swapped and _seen(execution, target_ids, window):
++        return PredicateJudgement(
++            predicate_id=predicate.id,
++            status="fail",
++            error_category="INCORRECT_PLACEMENT",
++            note="The mapped instances are arranged the opposite way around from the learned condition.",
++            evidence=[_relation_evidence(item, video_id) for item in swapped],
++            support_onsets=[item.time_start for item in swapped],
++        )
++    # A part that belongs to another step can share the anchor. Only a part with no role is a wrong component.
++    in_procedure = {object_id for role in roles.values() for object_id in role.object_local_ids}
++    occupants = [
++        item
++        for item in _occupants(execution, predicate.relation, target_ids, subject_ids | in_procedure)
++        if item.time_end >= window[0] - 1e-6
++    ]
++    if occupants and _seen(execution, target_ids, window):
+@@ -81,1 +104,1 @@
++        if others and _seen(execution, target_ids, window):
+@@ -103,2 +126,2 @@
++                "The object this part belongs on is visible, and the rest of the arrangement matches, "
++                "but the expected arrangement is absent. The expected part was not seen in that view."
+@@ -196,0 +220,37 @@
++_INVERSE = {"above": "below", "below": "above", "left_of": "right_of", "right_of": "left_of"}
++# Hand occlusion makes these two hard to tell apart between recordings. Either one means the part is joined.
++_JOINED = frozenset({"attached", "inside"})
++
++
++def _same_result(kind: str, expected: str) -> bool:
++    return kind == expected or (kind in _JOINED and expected in _JOINED)
++
++
++def _directed(relation, kind: str, subject_ids: set[str], target_ids: set[str]) -> str:
++    """For a directional kind: same, reversed, or other. "A below B" states "B above A"."""
++    forward = enum_value(relation.kind) == kind
++    subject, other = relation.subject_local_id, relation.other_local_id
++    if (forward and subject in subject_ids and other in target_ids) or (
++        not forward and other in subject_ids and subject in target_ids
++    ):
++        return "same"
++    if (forward and subject in target_ids and other in subject_ids) or (
++        not forward and other in target_ids and subject in subject_ids
++    ):
++        return "reversed"
++    return "other"
++
++
++def _reversed_relations(execution, kind: str, subject_ids: set[str], target_ids: set[str]):
++    if kind not in _INVERSE or not subject_ids:
++        return []
++    return [
++        relation
++        for relation in execution.relationships
++        if enum_value(relation.kind) in {kind, _INVERSE[kind]}
++        and relation.other_local_id is not None
++        and evidence_class(relation) == "DIRECTLY_OBSERVED"
++        and _directed(relation, kind, subject_ids, target_ids) == "reversed"
++    ]
++
++
+@@ -197,0 +258,9 @@
++    if kind in _INVERSE and subject_ids:
++        return [
++            relation
++            for relation in execution.relationships
++            if enum_value(relation.kind) in {kind, _INVERSE[kind]}
++            and relation.other_local_id is not None
++            and (not direct_only or evidence_class(relation) == "DIRECTLY_OBSERVED")
++            and _directed(relation, kind, subject_ids, target_ids) == "same"
++        ]
+@@ -200,1 +269,1 @@
++        if not _same_result(enum_value(relation.kind), kind) or relation.other_local_id is None:
+@@ -215,1 +284,1 @@
++        if not _same_result(enum_value(relation.kind), kind) or evidence_class(relation) != "DIRECTLY_OBSERVED":
+@@ -236,1 +305,1 @@
++        if _same_result(kind, expected) or kind not in STRONG_RELATIONS:
+@@ -278,0 +348,121 @@
++def apply_human(
++    step_id: str,
++    predicate_ids: list[str],
++    judgements: list[PredicateJudgement],
++    records: list[dict],
++    execution: AnalysisDocument,
++    video_id: str,
++) -> list[PredicateJudgement]:
++    """Fold reviewer observations in as evidence.
++
++    A record counts only when it cites a moment in the final interval, because
++    a completion condition is about the end state. An earlier one is noted and
++    leaves the machine reading in place.
++    """
++    start = _final_window(execution)[0]
++    by_id = {item.predicate_id: item for item in judgements}
++    targets = predicate_ids or [f"human:{step_id}"]
++    for record in records:
++        chosen = [record["predicate_id"]] if record.get("predicate_id") in targets else targets
++        for predicate_id in chosen:
++            current = by_id.get(predicate_id)
++            if float(record["timestamp"]) < start - 1e-6:
++                if current is not None:
++                    current.note = (
++                        f"{current.note} A reviewer observation at {record['timestamp']:.2f}s was not used: "
++                        f"it is before the final interval, which starts at {start:.2f}s."
++                    ).strip()
++                continue
++            by_id[predicate_id] = _human_judgement(predicate_id, record, current, video_id)
++    return list(by_id.values())
++
++
++def apply_reinspection(spec, machine: dict[str, list[PredicateJudgement]], findings: list[dict], video_id: str) -> dict:
++    """Fold validated reinspection findings into predicates the first reading could not decide.
++
++    A finding replaces only a "cannot" judgement: it never overturns a reading the first
++    analysis already supported or contradicted. Supported and contradicted need directly
++    observed, visible evidence at frames that were sent; anything else stays cannot, with
++    the reason noted. A reinspected pass carries no onset: the frames show an end state,
++    not when it was reached. Order is then read from the recognized action the step was
++    matched to (see engine._completion_times).
++    """
++    updated = {step_id: [item.model_copy(deep=True) for item in items] for step_id, items in machine.items()}
++    for finding in findings:
++        items = updated.get(finding.get("step_id") or "")
++        if items is None:
++            continue
++        for index, current in enumerate(items):
++            if current.predicate_id != finding.get("predicate_id") or current.status != "cannot":
++                continue
++            items[index] = _reinspected_judgement(current, finding, video_id)
++    return updated
++
++
++def _reinspected_judgement(current: PredicateJudgement, finding: dict, video_id: str) -> PredicateJudgement:
++    outcome = finding.get("outcome")
++    visible = finding.get("visibility") == "visible" or (outcome == "supported" and finding.get("partial_accepted"))
++    direct = finding.get("evidence_class") == "DIRECTLY_OBSERVED" and visible
++    stamps = [float(value) for value in finding.get("evidence_timestamps") or []]
++    model = finding.get("model_id") or "the analysis model"
++    reason = (finding.get("reason") or "").strip()
++    if outcome in {"supported", "contradicted"} and direct and stamps:
++        status = "pass" if outcome == "supported" else "fail"
++        words = "directly showed the condition holds" if status == "pass" else "directly showed the condition does not hold"
++        note = f"A second look by {model} at {', '.join(f'{value:.2f}s' for value in stamps)} {words}. {reason}".strip()
++        category = (current.error_category if current.error_category not in {"", "UNVERIFIABLE_OPERATION"} else "INCORRECT_PHYSICAL_STATE") if status == "fail" else ""
++        return PredicateJudgement(
++            predicate_id=current.predicate_id,
++            status=status,
++            error_category=category,
++            note=note,
++            reinspected=True,
++            evidence=[
++                EvidenceRef(
++                    video_id=video_id,
++                    timestamp=value,
++                    observation=reason or note,
++                    evidence_class="DIRECTLY_OBSERVED",
++                    provenance="AI_REINSPECTION",
++                )
++                for value in stamps
++            ],
++        )
++    limits = "; ".join(finding.get("limitations") or [])
++    note = f"{current.note} A second look by {model} did not establish it: {reason or 'no direct view'}{f' ({limits})' if limits else ''}.".strip()
++    return current.model_copy(update={"note": note, "reinspected": True})
++
++
++def _human_judgement(predicate_id: str, record: dict, current, video_id: str) -> PredicateJudgement:
++    answer = record["answer"]
++    status = {"installed": "pass", "not_installed": "fail"}.get(answer, "cannot")
++    words = {
++        "installed": "A reviewer confirmed the condition holds",
++        "not_installed": "A reviewer confirmed the condition does not hold",
++    }.get(answer, "A reviewer could not determine the condition")
++    category = ""
++    if status == "fail":
++        category = (current.error_category if current and current.status == "fail" else "") or "MISSING_COMPONENT"
++    elif status == "cannot":
++        category = "UNVERIFIABLE_OPERATION"
++    note = f"{words} at {record['timestamp']:.2f}s."
++    if record.get("note"):
++        note += f" {record['note']}"
++    return PredicateJudgement(
++        predicate_id=predicate_id,
++        status=status,
++        error_category=category,
++        note=note,
++        human=True,
++        evidence=[
++            EvidenceRef(
++                video_id=video_id,
++                timestamp=float(record["timestamp"]),
++                observation=note,
++                evidence_class="DIRECTLY_OBSERVED" if status != "cannot" else "UNKNOWN",
++                provenance="HUMAN_ANNOTATION",
++            )
++        ],
++    )
++
++
+@@ -294,1 +484,8 @@
++def _seen(execution: AnalysisDocument, object_ids: set[str], window: tuple[float, float]) -> bool:
++    """Enough to judge a relation that is itself directly observed. A hand on the part leaves it partly visible."""
++    return any(
++        _is_visible(observation, object_ids, window, kinds=("visible", "partial")) for observation in execution.observations
++    )
++
++
++def _is_visible(observation, object_ids: set[str], window: tuple[float, float], kinds: tuple[str, ...] = ("visible",)) -> bool:
+@@ -299,1 +496,1 @@
++    if enum_value(observation.visibility) not in kinds:
+@@ -303,0 +501,64 @@
++def _never_seen(predicate, execution: AnalysisDocument, subject, target, appearance_seen: set[str], video_id: str):
++    """A part that appears nowhere in the attempt is treated as missing, by product decision.
++
++    Nowhere means: no visible or partial observation at any time, no action, state change, or relation that
++    involves it, and no box that matched its learned appearance. Something in the attempt must have been seen, so
++    a recording that does not show the work at all stays unresolved. A part seen once and hidden later is not this.
++    The same holds the other way round: a seen part cannot end up on, or touching, a part that appears nowhere.
++    When neither part appears anywhere but other parts of the attempt do, both are missing.
++    """
++    subject_ids = set(subject.object_local_ids if subject else [])
++    target_ids = set(target.object_local_ids if target else [])
++    if not subject_ids:
++        return None
++
++    def seen(ids: set[str]) -> bool:
++        return bool(ids & appearance_seen) or any(_involved(execution, object_id) for object_id in ids)
++
++    others = {item.local_id for item in execution.objects} - subject_ids - target_ids
++    if not seen(subject_ids):
++        if not any(seen({object_id}) for object_id in others) and not (target_ids and seen(target_ids)):
++            return None
++        if target_ids and not seen(target_ids):
++            subject_label = subject.label or "part"
++            target_label = target.label or "part it goes with"
++            missing, note = subject_ids | target_ids, (
++                f"Neither the {subject_label} nor the {target_label} was seen at any point in the recording, "
++                "while other parts of the attempt were, so both are treated as missing."
++            )
++        else:
++            missing, note = subject_ids, "This part was not seen at any point in the recording, so it is treated as missing."
++    elif target_ids and not seen(target_ids):
++        label = target.label or "part it goes with"
++        missing, note = target_ids, f"The {label} was not seen at any point in the recording, so it is treated as missing and this condition cannot hold."
++    else:
++        return None
++    return PredicateJudgement(
++        predicate_id=predicate.id,
++        status="fail",
++        error_category="MISSING_COMPONENT",
++        note=note,
++        evidence=[
++            EvidenceRef(
++                video_id=video_id,
++                timestamp=None,
++                observation=note,
++                evidence_class="NOT_OBSERVED",
++                provenance="DETERMINISTIC",
++                object_local_ids=sorted(missing),
++            )
++        ],
++    )
++
++
++def _involved(execution: AnalysisDocument, object_id: str) -> bool:
++    for observation in execution.observations:
++        if observation.object_local_id == object_id and enum_value(observation.visibility) in {"visible", "partial"}:
++            return True
++    if any(object_id in action.object_local_ids for action in execution.actions):
++        return True
++    if any(transition.object_local_id == object_id for transition in execution.transitions):
++        return True
++    return any(object_id in {relation.subject_local_id, relation.other_local_id} for relation in execution.relationships)
++
++
+@@ -304,0 +566,5 @@
++    """An unresolved role can still be a missing component.
++
++    A mapped object is absent only when a direct observation says so. A gap,
++    an occlusion, or a detector that returned nothing is not that observation.
++    """
+@@ -306,0 +573,1 @@
++    explicit = False
+@@ -310,1 +577,1 @@
++        if observation.timestamp < window[0] - 1e-6 or observation.timestamp > window[1] + 1e-6:
+@@ -312,1 +579,2 @@
++        visibility = enum_value(observation.visibility)
++        if visibility in {"visible", "partial"}:
+@@ -314,1 +582,6 @@
++        if visibility == "absent" and evidence_class(observation) == "DIRECTLY_OBSERVED":
++            note = (observation.evidence.note or "").lower()
++            if any(token in note for token in ("not detected", "unobserved", "no sam", "empty detection")):
++                continue
++            explicit = True
++    return explicit
+@@ -322,1 +595,3 @@
++        # The model saw the anchor, but its box is an estimate and is not cited as a measurement.
++        measured = observation.bbox is not None and observation.geometry_origin != "vlm_estimated"
++        bbox = observation.bbox.model_dump() if measured else None
+@@ -327,1 +602,1 @@
++                observation="The object this part belongs on is visible at the end",

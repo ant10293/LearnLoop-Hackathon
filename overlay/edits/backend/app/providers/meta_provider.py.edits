@@ -1,0 +1,94 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/providers/meta_provider.py
+# base-sha256: 5867140571472c4b228111b78ebc49cbc0f1f9317382f8ae8358f808f4313783
+# result-sha256: ffd0c20b3679ecf9d4b9c48cb81202cf2165b7ffa486a28e5543720a7834d825
+@@ -11,1 +11,1 @@
++from app.config import settings
+@@ -12,0 +13,1 @@
++from app.providers.model_list import capabilities_for
+@@ -20,0 +22,1 @@
++    provider_timeout,
+@@ -23,0 +26,3 @@
++# Above every complete answer recorded so far. Reasoning tokens count toward it.
++# A call that repeats itself stops here instead of at the provider's far larger limit.
++MAX_OUTPUT_TOKENS = 65_536
+@@ -31,1 +36,1 @@
++        caps = capabilities_for(self.id, model_id)
+@@ -37,1 +42,2 @@
++        # The SDK retries by default. A retry is another billable request, so it stays off.
++        return AsyncOpenAI(api_key=secret, base_url=META_BASE, timeout=timeout, max_retries=0)
+@@ -69,0 +76,4 @@
++        if not settings.live_inference:
++            raise UnsupportedMode(
++                "Live Meta calls are off. Set LEARNLOOP_LIVE_INFERENCE=1 to allow them. Nothing was sent."
++            )
+@@ -86,0 +97,1 @@
++            "max_output_tokens": request.max_output_tokens or MAX_OUTPUT_TOKENS,
+@@ -98,1 +109,9 @@
++        if request.json_schema:
++            from app.pipeline.contracts import validate_strict_schema
++
++            if not caps.structured_output:
++                raise UnsupportedMode(
++                    f"{request.model_id} is not recorded as supporting structured output. "
++                    "The request was not sent unconstrained."
++                )
++            validate_strict_schema(request.json_schema)
+@@ -102,1 +121,1 @@
++                    "name": request.schema_name,
+@@ -104,1 +123,1 @@
++                    "strict": True,
+@@ -109,1 +128,2 @@
++            async with self._client(secret, provider_timeout(request.timeout_s)) as client:
++                response = await client.responses.create(**kwargs)
+@@ -112,0 +133,4 @@
++            if request.json_schema and _rejected_schema(exc):
++                from app.pipeline.contracts import SchemaContractError
++
++                raise SchemaContractError(f"Meta rejected the {request.schema_name} schema: {exc}") from exc
+@@ -118,0 +143,2 @@
++        status = str(getattr(response, "status", "") or "")
++        incomplete = _unfinished_reason(response, status, text)
+@@ -121,1 +147,7 @@
++            raw={
++                "id": getattr(response, "id", ""),
++                "model": request.model_id,
++                "usage": _usage_dict(usage),
++                "status": status,
++                "incomplete_reason": incomplete,
++            },
+@@ -126,0 +159,1 @@
++            incomplete_reason=incomplete,
+@@ -138,1 +170,0 @@
+@@ -140,2 +172,3 @@
++            async with self._client(secret, provider_timeout(request.timeout_s)) as client:
++                with request.video_path.open("rb") as handle:
++                    uploaded = await client.files.create(file=handle, purpose="user_data")
+@@ -149,0 +183,27 @@
++def _unfinished_reason(response, status: str, text: str) -> str:
++    """Why this response is not a finished answer. Empty only when it is one."""
++    if status == "incomplete":
++        details = getattr(response, "incomplete_details", None)
++        return str(getattr(details, "reason", "") or "unknown")
++    if not status:
++        return "missing_status"
++    if status != "completed":
++        return f"status_{status}"
++    if _refused(response):
++        return "refusal"
++    return "" if text.strip() else "empty_output"
++
++
++def _refused(response) -> bool:
++    for item in getattr(response, "output", None) or []:
++        for part in getattr(item, "content", None) or []:
++            if getattr(part, "type", "") == "refusal":
++                return True
++    return False
++
++
++def _rejected_schema(exc: Exception) -> bool:
++    message = str(exc).lower()
++    return getattr(exc, "status_code", None) == 400 and ("schema" in message or "text.format" in message)
++
++

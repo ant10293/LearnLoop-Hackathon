@@ -1,0 +1,6 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/verification/__init__.py
+# base-sha256: c73e0b14b81778bbb6d61e386e7bc4c836181398b07d17cedd847faddbdf00f8
+# result-sha256: ed101ef5a8a4335528a19fdd4e2e74a6ee49afc3b3329fefd29471be5f72c35c
+@@ -4,1 +3,0 @@
+@@ -10,2 +8,0 @@

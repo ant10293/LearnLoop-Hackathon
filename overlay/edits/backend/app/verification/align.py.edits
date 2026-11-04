@@ -1,0 +1,32 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/verification/align.py
+# base-sha256: 8c98089bbe80d2ccc54a8348d3f37059df62bfc4543a1a8a2fdf40c786e9f6f8
+# result-sha256: 502a28bb9b573204072dabed1abe2b3b27976b2b5769be767c7167000c01273b
+@@ -40,6 +40,15 @@
++    """Actions that handled this step's parts, scored by which parts. The part a step moves (the subject of its
++    completion conditions) decides: an action on only the base it goes onto is a weak match, since several steps
++    share a base. Without that, ties went to whichever action came first, and steps done in another order than the
++    demonstration got each other's actions."""
++    def objects_of(role_ids) -> set[str]:
++        found: set[str] = set()
++        for role_id in role_ids:
++            assignment = by_role.get(role_id)
++            if assignment is not None:
++                found.update(assignment.object_local_ids)
++        return found
++
++    objects = objects_of(step.object_roles)
++    subjects = objects_of({item.subject_role for item in step.completion_conditions if item.subject_role})
++    targets = objects_of({item.target_role for item in step.completion_conditions if item.target_role}) - subjects
+@@ -48,1 +57,2 @@
++        handled = set(action.object_local_ids)
++        if not objects.intersection(handled):
+@@ -51,1 +61,6 @@
++        score = 0.45 if step.expected_action_type and action_type == step.expected_action_type else 0.0
++        if subjects:
++            score += 0.4 if subjects & handled else 0.0
++            score += 0.2 if subjects & handled and targets & handled else 0.0
++        union = objects | handled
++        score += 0.15 * len(objects & handled) / len(union) if union else 0.0
+@@ -57,1 +72,1 @@
++                "score": round(0.2 + score, 4),

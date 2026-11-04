@@ -1,0 +1,120 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/verification/learn.py
+# base-sha256: 0a6cd036bf777ba8c02f4c872e5b6cb763930150f4e7879c98f17f66a6cb9292
+# result-sha256: 0f896acca3549b70043f5f2357b51b9ce60a4d1fbc5c2649e9612a38caa89da2
+@@ -31,1 +31,1 @@
++    "Only dependencies categorized as necessary_physical constrain order, until a reviewer changes them.",
+@@ -33,1 +33,1 @@
++    "Appearance embeddings are not copied into the template, and role matching does not use them.",
+@@ -34,0 +35,1 @@
++_WEAK_RELATIONS = frozenset({"near", "occluded_by", "unknown", "held_by"})
+@@ -45,0 +47,1 @@
++    results_first: bool = False,
+@@ -50,1 +52,5 @@
++    owners = _relation_owners(demo)
++    steps = [_step(demo, item, role_of, owners) for item in demo.workflow_steps]
++    if results_first:
++        for step in steps:
++            _keep_results(step)
+@@ -72,0 +79,25 @@
++def _keep_results(step: TemplateStep) -> None:
++    """A placement is the result to check. Weak relations are dropped and a state label only supports it."""
++    step.completion_conditions = [
++        item
++        for item in step.completion_conditions
++        if not (item.type == "physical_relationship" and item.relation in _WEAK_RELATIONS)
++        and not (item.type == "state_transition" and item.to_state == "other")
++    ]
++    for item in step.completion_conditions:
++        item.context_relations = [c for c in item.context_relations if c.get("relation") not in _WEAK_RELATIONS]
++    # A hand often hides the moment of joining. The result can still be checked on a later recording.
++    if not any(item.evidence_requirement == "required" for item in step.completion_conditions):
++        inferred = [item for item in step.completion_conditions if item.source_evidence_class == "INFERRED"]
++        placements = [item for item in inferred if item.type == "physical_relationship"]
++        for item in placements or inferred:
++            item.evidence_requirement = "required"
++    if any(
++        item.type == "physical_relationship" and item.evidence_requirement == "required"
++        for item in step.completion_conditions
++    ):
++        for item in step.completion_conditions:
++            if item.type != "physical_relationship":
++                item.evidence_requirement = "optional"
++
++
+@@ -82,3 +113,3 @@
++    kept = [item for item in demo.objects if item.local_id in needed]
++    names = _distinct_labels(kept)
++    for item in kept:
+@@ -90,1 +121,1 @@
++                label=names[item.local_id],
+@@ -104,0 +136,14 @@
++def _distinct_labels(objects) -> dict[str, str]:
++    """Identical parts share a label, so number them to tell them apart on the page."""
++    totals: dict[str, int] = {}
++    for item in objects:
++        totals[item.label or ""] = totals.get(item.label or "", 0) + 1
++    seen: dict[str, int] = {}
++    names = {}
++    for item in objects:
++        label = item.label or ""
++        seen[label] = seen.get(label, 0) + 1
++        names[item.local_id] = f"{label} {seen[label]}" if label and totals[label] > 1 else label
++    return names
++
++
+@@ -125,1 +170,1 @@
++def _step_span(demo: AnalysisDocument, item) -> tuple[list, list[str], float | None, float | None]:
+@@ -127,2 +171,0 @@
+@@ -136,1 +179,23 @@
++    return actions, objects, start, end
++
++
++def _relation_owners(demo: AnalysisDocument) -> dict[int, str]:
++    """The step that first achieved each arrangement. It stays true later but is not that later step's result."""
++    owners: dict[int, str] = {}
++    for relation in demo.relationships:
++        if relation.other_local_id is None or relation.time_start is None:
++            continue
++        for item in demo.workflow_steps:
++            _actions, objects, start, end = _step_span(demo, item)
++            begin, finish = _window(demo, start, end)
++            if {relation.subject_local_id, relation.other_local_id} <= set(objects) and begin <= relation.time_start <= finish:
++                owners[id(relation)] = item.local_id
++                break
++    return owners
++
++
++def _step(demo: AnalysisDocument, item, role_of: dict[str, str], owners: dict[int, str]) -> TemplateStep:
++    actions, objects, start, end = _step_span(demo, item)
++    action_type = enum_value(actions[0].action_type) if actions else ""
++    incidental = bool(action_type) and action_type in INCIDENTAL_ACTIONS
++    predicates = _predicates(demo, objects, role_of, start, end, owners, item.local_id)
+@@ -156,0 +222,2 @@
++        completion_text=item.completion_condition or "",
++        observed_text=item.observed_result or "",
+@@ -202,1 +269,1 @@
++def _predicates(demo, objects, role_of, start, end, owners=None, step_id="") -> list[CompletionPredicate]:
+@@ -214,0 +282,1 @@
++        and (owners or {}).get(id(relation), step_id) == step_id
+@@ -221,0 +290,1 @@
++        kind = _result_kind(demo, relation, window)
+@@ -247,1 +316,1 @@
++                id=f"rel:{index}:{kind}",
+@@ -251,1 +320,1 @@
++                relation=kind,
+@@ -280,0 +350,14 @@
++def _result_kind(demo: AnalysisDocument, relation, window: tuple[float, float]) -> str:
++    """A part the same answer calls inserted during this step sits inside its host."""
++    kind = enum_value(relation.kind)
++    if kind != "attached":
++        return kind
++    inserted = any(
++        item.object_local_id == relation.subject_local_id
++        and item.to_state == "inserted"
++        and overlaps(item.timestamp, item.timestamp, window[0], window[1])
++        for item in demo.transitions
++    )
++    return "inside" if inserted else kind
++
++

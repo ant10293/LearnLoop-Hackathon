@@ -1,0 +1,20 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/models/util.py
+# base-sha256: 153bf5a717fac82b53f2efab81eb5a5b931480c5e7cad9de4bd07d0312c83584
+# result-sha256: 6559b6409ee7ba2ba56b16e9d50f5ff327eaf30f7a063f44ad50b7e466b129b3
+@@ -12,0 +13,15 @@
++
++
++def elapsed_seconds(started: datetime, finished: datetime) -> float:
++    """Seconds between two clocks.
++
++    SQLite returns a stored timestamp with no timezone. A value just assigned
++    in this process still carries UTC, and subtracting the two types raises.
++    """
++    return (_as_utc(finished) - _as_utc(started)).total_seconds()
++
++
++def _as_utc(value: datetime) -> datetime:
++    if value.tzinfo is None:
++        return value.replace(tzinfo=UTC)
++    return value.astimezone(UTC)
