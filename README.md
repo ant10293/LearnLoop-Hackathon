@@ -29,9 +29,33 @@ Open http://127.0.0.1:5180 (the API is on port 8010).
 
 `setup.sh` assembles the application into `build/LearnLoop/` (Git-ignored), creates `build/LearnLoop/backend/.venv` with the backend and test dependencies plus PyTorch for DINOv2, downloads the DINOv2 weights once, and installs the frontend from its lockfile with `npm ci`. Set `LEARNLOOP_SKIP_PERCEPTION=1` to skip PyTorch (appearance checks then report themselves unavailable), or `LEARNLOOP_E2E=1` to also install the Playwright browser. Running it again rebuilds the application and keeps `.venv`, `node_modules`, `data/` and `.env`.
 
+### Recorded results, no API key needed
+
+To see LearnLoop's real output without recording anything or setting up a Meta key, load the recorded demo data before starting the app:
+
+```bash
+scripts/load_demo_data.sh
+```
+
+It downloads `learnloop-demo-data.zip` (about 425 MB) from this repository's [`demo-data-v1` release](https://github.com/ant10293/LearnLoop-Hackathon/releases/tag/demo-data-v1), checks its SHA-256, and unpacks it into `build/LearnLoop/data/app`. Anything already there is moved aside, not deleted. Then run `scripts/run.sh`.
+
+It holds 5 procedures with their completed analyses, learned and accepted procedures, and verification reports, all produced live against the Meta API by the author between 2026-11-02 and 2026-11-04:
+
+| Procedure | Attempts | Latest report |
+| --- | --- | --- |
+| Packaging phone | 3 | FAIL, "Place phone on tray" done before its prerequisite |
+| Lego Motorcycle build | 2 | PASS |
+| Detailed Lego Motorcycle build | 1 | FAIL |
+| Random hardware assembly | 1 | PASS |
+| Random hardware assembly [Object missing from first frame] | 2 | FAIL |
+
+Open any procedure to see the learned steps, SAM object boxes, thumbnails and timelines, and each verification report with its evidence, second look, and both videos seeking to the selected step. The archive is a copy of the author's own app data with hidden test procedures and their files removed. Verdicts were not edited. Procedure edits made on the review screen are marked as human edits in the app.
+
+The archive carries compressed playback copies of each recording, not the original files, so these recordings cannot be analyzed again. To run Learn and Verify yourself, create a new procedure with your own recordings and a Meta key (below).
+
 ### Live Meta calls
 
-Live calls are off by default and the app works without a key for browsing and tests. To analyze your own recordings:
+Live calls are off by default and the app works without a key for browsing, the recorded demo data, and tests. To analyze your own recordings:
 
 ```bash
 cp build/LearnLoop/.env.example .env
@@ -58,6 +82,7 @@ overlay/
 scripts/
   assemble.py          fetch dependency -> apply overlay -> verify -> build/LearnLoop
   setup.sh  run.sh  verify.sh
+  load_demo_data.sh    download the recorded demo data (a release asset) into build/LearnLoop/data
   compare_with_learnloop.py   independent byte-for-byte check against LearnLoop
   generate_overlay.py         maintainer tool that produced overlay/ from the two commits
 docs/
@@ -150,7 +175,7 @@ Only Meta models run. The provider registry contains the Meta provider plus loca
 
 ## Demo
 
-See [docs/DEMO_DISCLOSURE.md](docs/DEMO_DISCLOSURE.md) for the opening disclosure and talking points, and the application's [demo script](overlay/files/docs/DEMO.md) for the step-by-step flow. A live demo needs a `MODEL_API_KEY` and the recordings, which are not in this repository.
+See [docs/DEMO_DISCLOSURE.md](docs/DEMO_DISCLOSURE.md) for the opening disclosure and talking points, and the application's [demo script](overlay/files/docs/DEMO.md) for the step-by-step flow. To browse real results without a key, load the [recorded demo data](#recorded-results-no-api-key-needed). A live demo needs a `MODEL_API_KEY` and your own recordings.
 
 ## Known limitations
 
@@ -158,7 +183,7 @@ See [docs/DEMO_DISCLOSURE.md](docs/DEMO_DISCLOSURE.md) for the opening disclosur
 - Single-user local app with no authentication.
 - `scripts/run.sh` uses the application's fixed ports 8010 and 5180, and refuses to start if another process holds them.
 - Assembly needs network access to GitHub, or a local clone passed with `VTB_SOURCE=/path/to/vision-test-bench`. It depends on the pinned commit staying available in the public vision-test-bench repository.
-- No demo recordings or stored Meta responses are included (`demo/replay/` holds only its README), so cached replay works only after your own approved live calls.
+- The recorded demo data is for viewing results: it has playback copies, not the original recordings or stored Meta responses (`demo/replay/` holds only its README), so its recordings cannot be re-analyzed, and cached replay works only after your own approved live calls.
 - Tested on macOS. `scripts/dev.sh` in the application uses `lsof`, which most Linux distributions provide. Windows is not supported.
 
 ## Links
