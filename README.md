@@ -27,6 +27,20 @@ scripts/run.sh
 
 Open http://127.0.0.1:5180 (the API is on port 8010).
 
+**Fastest way to look around:** skip PyTorch and load the recorded demo data, so no API key or recording is needed:
+
+```bash
+LEARNLOOP_SKIP_PERCEPTION=1 scripts/setup.sh
+```
+
+```bash
+scripts/load_demo_data.sh
+```
+
+```bash
+scripts/run.sh
+```
+
 `setup.sh` assembles the application into `build/LearnLoop/` (Git-ignored), creates `build/LearnLoop/backend/.venv` with the backend and test dependencies plus PyTorch for DINOv2, downloads the DINOv2 weights once, and installs the frontend from its lockfile with `npm ci`. Set `LEARNLOOP_SKIP_PERCEPTION=1` to skip PyTorch (appearance checks then report themselves unavailable), or `LEARNLOOP_E2E=1` to also install the Playwright browser. Running it again rebuilds the application and keeps `.venv`, `node_modules`, `data/` and `.env`.
 
 ### Recorded results, no API key needed
@@ -145,7 +159,7 @@ vision-test-bench, started 2026-10-21, was a research harness for analyzing vide
 - The pipeline runner and the Meta API adapter
 - The core of the deterministic verifier: role mapping, action alignment, and condition predicates (first committed about nine hours before kickoff)
 
-38 of those files are used unchanged and 66 were changed during the hackathon. Measured line by line, about 4,800 lines of LearnLoop's backend match code from before kickoff. The application's own [PROVENANCE.md](overlay/files/docs/PROVENANCE.md) gives the per-file breakdown.
+37 of those files are used unchanged and 67 were changed during the hackathon. Measured line by line, about 4,800 lines of LearnLoop's backend match code from before kickoff. The application's own [PROVENANCE.md](overlay/files/docs/PROVENANCE.md) gives the per-file breakdown.
 
 ## What was built during the hackathon
 
