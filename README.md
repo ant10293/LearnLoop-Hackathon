@@ -51,17 +51,19 @@ To see LearnLoop's real output without recording anything or setting up a Meta k
 scripts/load_demo_data.sh
 ```
 
-It downloads `learnloop-demo-data.zip` (about 425 MB) from this repository's [`demo-data-v1` release](https://github.com/ant10293/LearnLoop-Hackathon/releases/tag/demo-data-v1), checks its SHA-256, and unpacks it into `build/LearnLoop/data/app`. Anything already there is moved aside, not deleted. Then run `scripts/run.sh`.
+It downloads `learnloop-demo-data.zip` (about 466 MB) from this repository's [`demo-data-v2` release](https://github.com/ant10293/LearnLoop-Hackathon/releases/tag/demo-data-v2), checks its SHA-256, and unpacks it into `build/LearnLoop/data/app`. Anything already there is moved aside, not deleted. Then run `scripts/run.sh`.
 
 It holds 5 procedures with their completed analyses, learned and accepted procedures, and verification reports, all produced live against the Meta API by the author between 2026-11-02 and 2026-11-04:
 
 | Procedure | Attempts | Latest report |
 | --- | --- | --- |
 | Packaging phone | 3 | FAIL, "Place phone on tray" done before its prerequisite |
-| Lego Motorcycle build | 2 | PASS |
+| Lego Motorcycle build | 2 | FAIL, white cylinder missing (the other attempt passes) |
 | Detailed Lego Motorcycle build | 1 | FAIL |
 | Random hardware assembly | 1 | PASS |
 | Random hardware assembly [Object missing from first frame] | 2 | FAIL |
+
+Lego Motorcycle build also has a completed Reliability Lab experiment: the missing-cylinder attempt verified 4 times with fresh Meta inference each time, all 4 FAIL on the same step (100% agreement).
 
 Open any procedure to see the learned steps, SAM object boxes, thumbnails and timelines, and each verification report with its evidence, second look, and both videos seeking to the selected step. The archive is a copy of the author's own app data with hidden test procedures and their files removed. Verdicts were not edited. Procedure edits made on the review screen are marked as human edits in the app.
 
