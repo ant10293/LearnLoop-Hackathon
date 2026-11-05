@@ -475,7 +475,7 @@
     "backend/app/pipeline/guided.py": {
       "action": "add",
       "mode": "100644",
-      "sha256": "ad9ea9c29e01945723d04cdd5cc4812ba06780ff9affd045063b360a9e9d186e"
+      "sha256": "180a343fc213ab88927b4e5d11e08e5af057d7097f15383a2739bf4f453c518f"
     },
     "backend/app/pipeline/infer.py": {
       "action": "edit",
@@ -635,7 +635,7 @@
     "backend/app/schemas/generation.py": {
       "action": "add",
       "mode": "100644",
-      "sha256": "6911220e7794632debd465503113715edaca7f1e35f6eb00686abf215e2ae5d5"
+      "sha256": "8c8096e77f541404f13d31793c1be370f4fe4a3635eccd66d6e2fc7bd208ba33"
     },
     "backend/app/services/__init__.py": {
       "action": "keep",
