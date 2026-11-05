@@ -10,8 +10,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 APP="$ROOT/build/LearnLoop"
 DATA="$APP/data"
-URL="https://github.com/ant10293/LearnLoop-Hackathon/releases/download/demo-data-v2/learnloop-demo-data.zip"
-SHA256="1dedfbee18400afc102be0f854aa2c5eeaeb8ed3bdc407fdc66cd415b177c56a"
+URL="https://github.com/ant10293/LearnLoop-Hackathon/releases/download/demo-data-v3/learnloop-demo-data.zip"
+SHA256="3f59c8861573139ea7ad0c8481d6082d383ae1885468b6d3b4929b50fa02ba8b"
 
 if [[ ! -d "$APP/backend" ]]; then
   echo "LearnLoop is not assembled yet. Run scripts/setup.sh first." >&2
@@ -34,7 +34,7 @@ trap 'rm -rf "$WORK"' EXIT
 ZIP="${LEARNLOOP_DEMO_DATA:-}"
 if [[ -z "$ZIP" ]]; then
   ZIP="$WORK/learnloop-demo-data.zip"
-  echo "Downloading demo data (about 466 MB)..."
+  echo "Downloading demo data (about 520 MB)..."
   curl -fL --progress-bar -o "$ZIP" "$URL"
 fi
 if [[ "$(sha256 "$ZIP")" != "$SHA256" ]]; then
