@@ -1,36 +1,62 @@
 # LearnLoop hackathon edit script v1
 # path: backend/app/services/ingest.py
 # base-sha256: 8cd4a4ada68d7e7dff7658e86e856403c957daf9868556426cdb87de4759ac5e
-# result-sha256: d3ebc33fdaf684df232a40b8b9efdd31b1dd0c6a5ae3e24dd8e0cadf220654a3
+# result-sha256: 9d86f800ba36301416feb70b14d740c1bbd34d5aa102a43eb2c95ac20157692e
 @@ -36,1 +36,1 @@
 +from app.video.sampling import SAME_MOMENT_SEC, plan_uniform
-@@ -179,1 +179,2 @@
+@@ -85,6 +85,14 @@
++    # A row whose file is gone is not a copy to keep: the new upload stands in for it.
++    existing = next(
++        (
++            row
++            for row in session.scalars(
++                select(VideoAsset).where(
++                    _same_project(project_id),
++                    VideoAsset.checksum_sha256 == checksum,
++                    VideoAsset.id != (video.id if video is not None else ""),
++                )
++            )
++            if not _file_gone(row)
++        ),
++        None,
+@@ -179,1 +187,2 @@
 +        # These are upload previews. The playback file has the same times and decodes far faster than 4K.
 +        extract_frame(resolve_stored(proxy_rel) if proxy_rel else original, sample.timestamp, dest, accurate=True)
-@@ -253,0 +255,5 @@
+@@ -253,0 +263,5 @@
 +    try:
 +        video.thumbnail_path = _preview_still(dest, video.id)
 +        session.commit()
 +    except VideoError as exc:
 +        log.warning("preview still for %s failed: %s", video.id, exc)
-@@ -556,6 +562,4 @@
+@@ -522,0 +537,10 @@
++def _file_gone(video: VideoAsset) -> bool:
++    """True when the row's original is no longer on disk, whether copied in or referenced."""
++    if not video.stored_path:
++        return False
++    try:
++        return not resolve_stored(video.stored_path).is_file()
++    except ValueError:
++        return True
++
++
+@@ -556,6 +580,4 @@
 +    existing = list(
 +        session.scalars(select(FrameAsset).where(FrameAsset.video_id == video.id, FrameAsset.run_id == run_id))
 +    )
 +    used: set[str] = set()
-@@ -563,3 +567,5 @@
+@@ -563,3 +585,5 @@
 +        match = _closest_frame(existing, sample.timestamp, used)
 +        if match is not None:
 +            match.ordinal = ordinal
 +            used.add(match.id)
 +            rows.append(match)
-@@ -585,0 +592,1 @@
+@@ -585,0 +610,1 @@
 +        used.add(row.id)
-@@ -586,0 +594,3 @@
+@@ -586,0 +612,3 @@
 +    for frame in existing:
 +        if frame.id not in used:
 +            session.delete(frame)
-@@ -588,0 +599,14 @@
+@@ -588,0 +617,14 @@
 +
 +
 +def _closest_frame(frames: list[FrameAsset], timestamp: float, used: set[str]) -> FrameAsset | None:

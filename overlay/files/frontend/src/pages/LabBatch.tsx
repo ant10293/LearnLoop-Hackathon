@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
-import { ErrorNote, Layout } from "../components/ui";
+import { ErrorNote, Layout, useRowLink } from "../components/ui";
 import { humanizeModel } from "../lib/learnloop";
 import {
   fraction,
@@ -31,7 +31,10 @@ export function LabBatchPage() {
     queryFn: () => lab.batch(batchId),
     refetchInterval: (state) => (state.state.data && isActive(state.state.data.status) ? 1500 : false),
   });
+  const navigate = useNavigate();
   const [error, setError] = useState("");
+  const [removeError, setRemoveError] = useState("");
+  const [removing, setRemoving] = useState(false);
   const batch = query.data;
   const set = (next: Batch) => client.setQueryData(["lab-batch", batchId], next);
 
@@ -41,6 +44,22 @@ export function LabBatchPage() {
       set(await lab.cancel(batchId));
     } catch (exc) {
       setError((exc as Error).message);
+    }
+  }
+
+  async function remove() {
+    const madeOn = new Date(`${batch!.created_at}Z`).toLocaleString();
+    if (!window.confirm(`Delete the experiment “${batch!.name}” from ${madeOn}? Its runs, their analyses, and their reports will be removed. This cannot be undone.`)) return;
+    setRemoving(true);
+    setRemoveError("");
+    try {
+      await lab.remove(batchId);
+      client.removeQueries({ queryKey: ["lab-batch", batchId] });
+      await client.invalidateQueries({ queryKey: ["lab-batches"] });
+      navigate(labPath(id));
+    } catch (exc) {
+      setRemoveError((exc as Error).message);
+      setRemoving(false);
     }
   }
 
@@ -55,6 +74,10 @@ export function LabBatchPage() {
           <Overview batch={batch} onCancel={() => void cancel()} />
           {batch.mode === "verification" ? <VerificationView batch={batch} onChange={set} /> : <LearningView batch={batch} />}
           <Reproducibility batch={batch} />
+          <ErrorNote message={removeError} />
+          <div className="procedure-footer">
+            <button className="btn danger" disabled={removing || isActive(batch.status)} title={isActive(batch.status) ? "Cancel the experiment and let it stop before deleting it." : undefined} onClick={() => void remove()}>Delete experiment</button>
+          </div>
         </>
       )}
     </Layout>
@@ -140,6 +163,7 @@ type SortKey = "run" | "verdict" | "runtime" | "evidence";
 
 function RunMatrix({ batch }: { batch: Batch }) {
   const navigate = useNavigate();
+  const rowLink = useRowLink();
   const [sort, setSort] = useState<SortKey>("run");
   const [filter, setFilter] = useState("all");
   const stepIds = batch.steps.map((step) => step.step_id);
@@ -195,7 +219,7 @@ function RunMatrix({ batch }: { batch: Batch }) {
           </thead>
           <tbody>
             {rows.map((run) => (
-              <tr key={run.id} className={run.status === "failed" ? "errored" : ""}>
+              <tr key={run.id} {...rowLink(labPath(batch.project_id, batch.id, run.id))} className={`row-link${run.status === "failed" ? " errored" : ""}`}>
                 <td className="mono"><Link to={labPath(batch.project_id, batch.id, run.id)}>{String(run.index).padStart(2, "0")}</Link></td>
                 <td>
                   <span className={`verdict ${runTone(run)}`}>{runLabel(run)}</span>
@@ -392,6 +416,7 @@ function Usage({ metrics }: { metrics: VerificationMetrics | LearningMetrics }) 
 
 function LearningView({ batch }: { batch: Batch }) {
   const metrics = batch.metrics as LearningMetrics;
+  const rowLink = useRowLink();
   const distribution = (values: Record<string, number>) => Object.entries(values).map(([key, count]) => `${count}× ${key}`).join(", ") || "—";
   return (
     <>
@@ -411,7 +436,7 @@ function LearningView({ batch }: { batch: Batch }) {
             <thead><tr><th>Run</th><th>Status</th><th>Steps</th><th>Required</th><th>Checkable</th><th>Roles</th><th>Objects</th><th>Validation</th><th>Reviewable</th><th>Runtime</th><th>Inference</th><th /></tr></thead>
             <tbody>
               {batch.runs.map((run) => (
-                <tr key={run.id} className={run.status === "failed" ? "errored" : ""}>
+                <tr key={run.id} {...rowLink(labPath(batch.project_id, batch.id, run.id))} className={`row-link${run.status === "failed" ? " errored" : ""}`}>
                   <td className="mono"><Link to={labPath(batch.project_id, batch.id, run.id)}>{String(run.index).padStart(2, "0")}</Link></td>
                   <td><span className={`verdict ${run.status === "completed" ? "muted" : runTone(run)}`}>{run.status.toUpperCase()}</span>{run.status === "failed" && <div className="lab-error-text small" title={run.error}>{run.error_kind.replaceAll("_", " ")}</div>}{run.progress && <div className="muted small">{run.progress.phase} {run.progress.stages_done}/{run.progress.stages_total}</div>}</td>
                   <td className="mono">{run.result.step_count ?? "—"}</td>

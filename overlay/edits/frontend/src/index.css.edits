@@ -1,7 +1,7 @@
 # LearnLoop hackathon edit script v1
 # path: frontend/src/index.css
 # base-sha256: 8267da9ff99b1bdeabcc1ec1925261444dbbb609d55bef9e902c9419210c5999
-# result-sha256: b5b548b90b68cbcfc861e7dfc365942aedceadcd0e35aa1c69921d906a09ec63
+# result-sha256: a7e4ad0b633e3917cb57748ffc560413905bb7aa55248ea79f838fc4ab42f18e
 @@ -8,12 +8,22 @@
 +  --bg: #f6f5f1;
 +  --surface: #ffffff;
@@ -304,7 +304,7 @@
 +  .sticky { position: static; }
 +  .hero h1 { font-size: 2rem; }
 +  .page { padding: 1rem; }
-@@ -789,0 +517,55 @@
+@@ -789,0 +517,57 @@
 +
 +/* Reliability Lab */
 +.lab-section { margin-bottom: 1rem; }
@@ -337,6 +337,8 @@
 +.lab-table th, .lab-table td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--line); vertical-align: top; }
 +.lab-table th { font-weight: 600; color: var(--muted); font-size: 0.78rem; white-space: nowrap; }
 +.lab-table td.mono { font-variant-numeric: tabular-nums; white-space: nowrap; }
++.lab-table tr.row-link { cursor: pointer; }
++.lab-table tr.row-link:hover { background: #f5f7fb; }
 +.lab-table tr.errored { background: #fdf6f6; }
 +.lab-table tr.current-row { background: #eef2fd; }
 +.lab-table tr.unstable-row td:first-child { box-shadow: inset 3px 0 0 var(--unknown); }

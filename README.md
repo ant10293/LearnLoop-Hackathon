@@ -10,7 +10,7 @@ This repository holds **only work done during the hackathon**. LearnLoop was bui
 | --- | --- |
 | Hackathon kickoff | 2026-10-26, 12:00 PM ET (16:00 UTC) |
 | External dependency | [`ant10293/vision-test-bench`](https://github.com/ant10293/vision-test-bench) at [`27859ac787ae214862488d6348898d012d57353c`](https://github.com/ant10293/vision-test-bench/commit/27859ac787ae214862488d6348898d012d57353c), pushed to GitHub 2026-10-26 07:29 UTC (03:29 AM ET) |
-| Product repository during development | [`ant10293/LearnLoop`](https://github.com/ant10293/LearnLoop), assembled result identical to [`8e718ccc49e63bfb5443c77554d98c685818b6e5`](https://github.com/ant10293/LearnLoop/commit/8e718ccc49e63bfb5443c77554d98c685818b6e5) |
+| Product repository during development | [`ant10293/LearnLoop`](https://github.com/ant10293/LearnLoop), assembled result identical to [`7c773c7e73dda6de67ffb1e97b8049ad47d9e671`](https://github.com/ant10293/LearnLoop/commit/7c773c7e73dda6de67ffb1e97b8049ad47d9e671) |
 | This repository | Created 2026-11-04. No Git history from either repository above |
 
 ## Quick start
@@ -78,7 +78,7 @@ overlay/
   manifest.json        pinned dependency (commit + tree hash), and every path in the result
                        with its action, SHA-256 and file mode
   files/<path>         71 files created during the hackathon, complete
-  edits/<path>.edits   66 edit scripts for pre-kickoff files changed during the hackathon
+  edits/<path>.edits   67 edit scripts for pre-kickoff files changed during the hackathon
 scripts/
   assemble.py          fetch dependency -> apply overlay -> verify -> build/LearnLoop
   setup.sh  run.sh  verify.sh
@@ -97,7 +97,7 @@ docs/
 1. Shallow-fetches vision-test-bench at the pinned commit into `build/deps/` (Git-ignored) and checks both the commit and its tree hash.
 2. Exports that commit's files, without Git history, into a staging directory.
 3. Deletes the 108 files removed during the hackathon, after checking each one's SHA-256. These were research-only modules LearnLoop does not run: non-Meta providers, the research UI, and the tracking, recovery, evaluation, audio and demo-scenario code.
-4. Applies the 66 edit scripts.
+4. Applies the 67 edit scripts.
 5. Copies in the 71 new files.
 6. Sets file modes and verifies that all 175 files have the recorded SHA-256 and mode, and that no other file exists.
 7. Moves the result into `build/LearnLoop/`.
@@ -129,13 +129,13 @@ git diff --no-index --stat build/baseline build/compare/assembled
 
 ### Byte-for-byte validation
 
-[`scripts/compare_with_learnloop.py`](scripts/compare_with_learnloop.py) does not trust the manifest. It assembles a fresh copy, fetches LearnLoop at `8e718cc` from GitHub, exports it with `git archive`, and compares every path, byte and executable bit, and cross-checks the file list against `git ls-tree`:
+[`scripts/compare_with_learnloop.py`](scripts/compare_with_learnloop.py) does not trust the manifest. It assembles a fresh copy, fetches LearnLoop at `7c773c7` from GitHub, exports it with `git archive`, and compares every path, byte and executable bit, and cross-checks the file list against `git ls-tree`:
 
 ```
-MATCH: 175 files, 1,728,638 bytes identical to LearnLoop 8e718ccc49e63bfb5443c77554d98c685818b6e5 (tree 9ab0296b9a52a9dea12030f98483df5a04f6ca87)
+MATCH: 175 files, 1,743,849 bytes identical to LearnLoop 7c773c7e73dda6de67ffb1e97b8049ad47d9e671 (tree 61b986f0bd8d9767a1390215f2ad11aff26325bf)
 ```
 
-Results on 2026-11-04 (macOS, Python 3.12.2, Node 23.9): byte-for-byte match; Python imports and application startup; Alembic migrations from an empty database to the single head; backend tests 266 passed; `tsc --noEmit` and `vite build` succeeded; frontend tests 51 passed; Playwright smoke test (teach, review, accept, verify, inspect evidence, confirm, export) passed; the home page loaded in a browser with no console errors. A tampered edit script is rejected with `result does not match result-sha256`.
+Results on 2026-11-04 (macOS, Python 3.12.2, Node 23.9): byte-for-byte match; Python imports and application startup; Alembic migrations from an empty database to the single head; backend tests 269 passed; `tsc --noEmit` and `vite build` succeeded; frontend tests 52 passed; Playwright smoke test (teach, review, accept, verify, inspect evidence, confirm, export) passed; the home page loaded in a browser with no console errors. A tampered edit script is rejected with `result does not match result-sha256`.
 
 ## What existed before kickoff
 
@@ -189,7 +189,7 @@ See [docs/DEMO_DISCLOSURE.md](docs/DEMO_DISCLOSURE.md) for the opening disclosur
 ## Links
 
 - Pre-existing research project: https://github.com/ant10293/vision-test-bench (pinned: [`27859ac`](https://github.com/ant10293/vision-test-bench/tree/27859ac787ae214862488d6348898d012d57353c))
-- LearnLoop development repository: https://github.com/ant10293/LearnLoop (audited: [`8e718cc`](https://github.com/ant10293/LearnLoop/tree/8e718ccc49e63bfb5443c77554d98c685818b6e5))
+- LearnLoop development repository: https://github.com/ant10293/LearnLoop (audited: [`7c773c7`](https://github.com/ant10293/LearnLoop/tree/7c773c7e73dda6de67ffb1e97b8049ad47d9e671))
 - Provenance details: [docs/SUBMISSION_PROVENANCE.md](docs/SUBMISSION_PROVENANCE.md)
 
 Claude Code (Anthropic) was used as a development tool. No Anthropic model runs in the application.

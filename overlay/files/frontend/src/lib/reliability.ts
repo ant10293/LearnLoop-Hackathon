@@ -307,7 +307,7 @@ export interface LabOptions {
   procedures: {
     id: string;
     name: string;
-    recordings: { video_id: string; filename: string; role: "demonstration" | "execution"; duration_sec: number; ready: boolean }[];
+    recordings: { video_id: string; filename: string; role: "demonstration" | "execution"; duration_sec: number; ready: boolean; missing?: boolean }[];
     templates: { id: string; version: number; name: string; family_id: string; acceptance_status: string; created_at: string; source_filename?: string; steps: { step_id: string; name: string; required: boolean }[] }[];
   }[];
   models: { default_inference: string; default_segmentation: string };
@@ -336,6 +336,7 @@ export const lab = {
   batch: (id: string) => request<Batch>(`/api/reliability/batches/${id}`),
   create: (body: NewBatch) => request<Batch>("/api/reliability/batches", { method: "POST", body: JSON.stringify(body) }),
   cancel: (id: string) => request<Batch>(`/api/reliability/batches/${id}/cancel`, { method: "POST" }),
+  remove: (id: string) => request<{ deleted: string }>(`/api/reliability/batches/${id}`, { method: "DELETE" }),
   cancelRun: (id: string, runId: string) => request<Batch>(`/api/reliability/batches/${id}/runs/${runId}/cancel`, { method: "POST" }),
   groundTruth: (id: string, body: GroundTruth) => request<Batch>(`/api/reliability/batches/${id}/ground-truth`, { method: "PUT", body: JSON.stringify(body) }),
 };

@@ -40,7 +40,7 @@ DEPENDENCY = {
 REFERENCE = {
     "name": "LearnLoop",
     "url": "https://github.com/ant10293/LearnLoop.git",
-    "commit": "8e718ccc49e63bfb5443c77554d98c685818b6e5",
+    "commit": "7c773c7e73dda6de67ffb1e97b8049ad47d9e671",
 }
 
 HUNK = re.compile(rb"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")

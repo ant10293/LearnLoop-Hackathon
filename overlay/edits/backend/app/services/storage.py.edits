@@ -1,0 +1,13 @@
+# LearnLoop hackathon edit script v1
+# path: backend/app/services/storage.py
+# base-sha256: 6a0906aec212c4e9468522f83240ea5d7fb72917dbbd5acac9359b8485071b48
+# result-sha256: 5e28245e6adee5ec1b38ff1b04f9926ee763ec380c5323d8b90dc87b65f9f7fa
+@@ -46,0 +47,8 @@
++def missing_original(stored: str) -> Path | None:
++    """Where a referenced original was, when it is no longer there. Copied originals are not checked here."""
++    if not stored or not is_external(stored):
++        return None
++    path = resolve_stored(stored)
++    return None if path.is_file() else path
++
++

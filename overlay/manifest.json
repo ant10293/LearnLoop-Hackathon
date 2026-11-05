@@ -2,8 +2,8 @@
   "counts": {
     "add": 71,
     "delete": 108,
-    "edit": 66,
-    "keep": 38
+    "edit": 67,
+    "keep": 37
   },
   "deleted": {
     "ARCHITECTURE.md": "93d9c40de726ee141fa903653c2685bb8452082cda2192a221bfbc2f6243754c",
@@ -266,7 +266,7 @@
     "backend/app/api/reliability.py": {
       "action": "add",
       "mode": "100644",
-      "sha256": "8b5e666c718da492aa7ed0aa70aaef11a7f4dd203f55880e4a01d2afc734a67e"
+      "sha256": "36a40bb7eb9609d20efcb8e7fc893b36af3fd88ea7ead00993268ca8bc58fabe"
     },
     "backend/app/api/routes.py": {
       "action": "edit",
@@ -365,7 +365,7 @@
     "backend/app/models/reliability.py": {
       "action": "add",
       "mode": "100644",
-      "sha256": "813fe6bdd51888e41994d5038798fca1c77a07632c13add0675247732754a6fc"
+      "sha256": "fa407090e98265173c377f960b8c882c7868f7f6e9adeec746de93f45ed09ee8"
     },
     "backend/app/models/runs.py": {
       "action": "edit",
@@ -589,7 +589,7 @@
     "backend/app/reliability/executor.py": {
       "action": "add",
       "mode": "100644",
-      "sha256": "a522237fd13e7e9e1740dddd3bec2e1ad7d6195fd46b0bf0ecb397d3c00b4fa4"
+      "sha256": "bf8b62ce390efea038a0e7e6bab009444bd5d6c425864f76832c69bbd4da1242"
     },
     "backend/app/reliability/learning.py": {
       "action": "add",
@@ -604,12 +604,12 @@
     "backend/app/reliability/normalize.py": {
       "action": "add",
       "mode": "100644",
-      "sha256": "48f237dcc0ccd1339234f69bacc93e9a8f57be480a759d2da8f870e5cb897b6d"
+      "sha256": "7b7df00f1dba023d93197d6e65b10809259bbe04d4979b5a45c4a40c41d8c0ee"
     },
     "backend/app/reliability/service.py": {
       "action": "add",
       "mode": "100644",
-      "sha256": "ae2c9d012d12a8a695fd5da1a6815faceb98c97e2951a7699f95ca64ce1a61f2"
+      "sha256": "aef91f7861fb70148dd6d0076c67a610acf2feec7f75cc497e170cc1f52dfded"
     },
     "backend/app/schemas/__init__.py": {
       "action": "keep",
@@ -675,7 +675,7 @@
       "base_mode": "100644",
       "base_sha256": "8cd4a4ada68d7e7dff7658e86e856403c957daf9868556426cdb87de4759ac5e",
       "mode": "100644",
-      "sha256": "d3ebc33fdaf684df232a40b8b9efdd31b1dd0c6a5ae3e24dd8e0cadf220654a3"
+      "sha256": "9d86f800ba36301416feb70b14d740c1bbd34d5aa102a43eb2c95ac20157692e"
     },
     "backend/app/services/lab_settings.py": {
       "action": "keep",
@@ -709,11 +709,11 @@
       "sha256": "b54f95aafbbd5325d6b0d028556710d523601cbe0dc17e906ae5abd37e8fe0a7"
     },
     "backend/app/services/storage.py": {
-      "action": "keep",
+      "action": "edit",
       "base_mode": "100644",
       "base_sha256": "6a0906aec212c4e9468522f83240ea5d7fb72917dbbd5acac9359b8485071b48",
       "mode": "100644",
-      "sha256": "6a0906aec212c4e9468522f83240ea5d7fb72917dbbd5acac9359b8485071b48"
+      "sha256": "5e28245e6adee5ec1b38ff1b04f9926ee763ec380c5323d8b90dc87b65f9f7fa"
     },
     "backend/app/services/verification_store.py": {
       "action": "edit",
@@ -879,7 +879,7 @@
     "backend/tests/test_learnloop_flow.py": {
       "action": "add",
       "mode": "100644",
-      "sha256": "d6c8069a77e25645b68bfe125ecd72ae36ce1d50468362ea017519e7f0a293a8"
+      "sha256": "57102cb4650cd9ec5b4d42a8b0ff0c74b5a31ff452196bc427f7b5094cae8264"
     },
     "backend/tests/test_locate.py": {
       "action": "add",
@@ -942,7 +942,7 @@
     "backend/tests/test_reliability.py": {
       "action": "add",
       "mode": "100644",
-      "sha256": "4a23bb0618ddbac2a3f5c3fae1109aaa6f4ee799bc26d171db6d096bcce0b524"
+      "sha256": "dfd4b12ab214af0b2c21e2947c1b1c2c12d3f28cb5e3622f648e039e782cd3ec"
     },
     "backend/tests/test_sampling.py": {
       "action": "add",
@@ -1086,14 +1086,14 @@
     "frontend/src/components/ui.tsx": {
       "action": "add",
       "mode": "100644",
-      "sha256": "af9a4bd2ddf7512b32b7149f77ac004583b3edc6a41edf61ab15e2ed2adf06d0"
+      "sha256": "87211fd2ffcb08bc52cb3d0c2682b7c1b93597db5b63c43f08d5318f7f58627c"
     },
     "frontend/src/index.css": {
       "action": "edit",
       "base_mode": "100644",
       "base_sha256": "8267da9ff99b1bdeabcc1ec1925261444dbbb609d55bef9e902c9419210c5999",
       "mode": "100644",
-      "sha256": "b5b548b90b68cbcfc861e7dfc365942aedceadcd0e35aa1c69921d906a09ec63"
+      "sha256": "a7e4ad0b633e3917cb57748ffc560413905bb7aa55248ea79f838fc4ab42f18e"
     },
     "frontend/src/lib/droppedPath.ts": {
       "action": "add",
@@ -1115,7 +1115,7 @@
     "frontend/src/lib/reliability.ts": {
       "action": "add",
       "mode": "100644",
-      "sha256": "deee1a8775557b52fe6aa55e2efd8b234ea44480c732bd4cf6b8e59d958a767c"
+      "sha256": "e29f7c8adbf49ec310812189cb4a77ed5b2ecf220d4a3ea3c654ddd8f504c6f7"
     },
     "frontend/src/main.tsx": {
       "action": "keep",
@@ -1127,12 +1127,12 @@
     "frontend/src/pages/Lab.tsx": {
       "action": "add",
       "mode": "100644",
-      "sha256": "8aadcb86d415c68c108c625ee8be77323314123b056c786332697091026d257e"
+      "sha256": "2a0f723a6232560d5f697aaf51ddbfc6db532f7fb3c002f81a18b9f21b78b0d9"
     },
     "frontend/src/pages/LabBatch.tsx": {
       "action": "add",
       "mode": "100644",
-      "sha256": "5b3e48d108ac0539409541a8c01fffdc265ba090b45e3b6898a8834594eb71a2"
+      "sha256": "2fda2f6760a4de28d6c0df8e2b293d7e592a8da9f16f78bf7d853a104ef248c6"
     },
     "frontend/src/pages/LabRun.tsx": {
       "action": "add",
@@ -1164,7 +1164,7 @@
     "frontend/src/test/lab.test.tsx": {
       "action": "add",
       "mode": "100644",
-      "sha256": "5c66933a12763f36fd2c6ffa28da1860a8cd51fd82f9795ff0f91d8d37219bde"
+      "sha256": "b3cf4bbde93a6ea65af3d297d9b1a5eca56cd8ac8b2d9e2dcedf24f8f022944f"
     },
     "frontend/src/test/learnloop.test.tsx": {
       "action": "add",
@@ -1209,10 +1209,10 @@
   },
   "format": 1,
   "reference": {
-    "commit": "8e718ccc49e63bfb5443c77554d98c685818b6e5",
-    "committed": "2026-11-04T14:18:59-06:00",
+    "commit": "7c773c7e73dda6de67ffb1e97b8049ad47d9e671",
+    "committed": "2026-11-04T18:31:21-06:00",
     "name": "LearnLoop",
-    "tree": "9ab0296b9a52a9dea12030f98483df5a04f6ca87",
+    "tree": "61b986f0bd8d9767a1390215f2ad11aff26325bf",
     "url": "https://github.com/ant10293/LearnLoop.git"
   }
 }

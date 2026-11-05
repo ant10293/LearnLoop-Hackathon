@@ -2,8 +2,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { RecordingDrop } from "../components/RecordingDrop";
-import { ErrorNote, Layout } from "../components/ui";
-import { ApiError, humanizeModel } from "../lib/learnloop";
+import { ErrorNote, Layout, useRowLink } from "../components/ui";
+import { ApiError, api, humanizeModel, type Recording } from "../lib/learnloop";
 import { isActive, lab, labPath, seconds, versionLabel, type BatchBrief, type GroundTruth, type Mode } from "../lib/reliability";
 
 /** What sending the batch would involve, from the server's 409 answer. Nothing is sent until the person approves. */
@@ -34,7 +34,7 @@ export function LabPage() {
       <div className="heading">
         <div>
           <h1>Reliability Lab</h1>
-          <p className="muted">Run one recording of this procedure through verification or learning several times under identical conditions, then compare the results. Developer tool.</p>
+          <p className="muted">Run one recording of this procedure through verification or learning several times under identical conditions, then compare the results.</p>
         </div>
       </div>
       {options.data && !procedure ? <p className="error" role="alert">This procedure was not found.</p> : <NewExperiment projectId={id} />}
@@ -60,6 +60,7 @@ export function LegacyLabRedirect() {
 function History({ items }: { items: BatchBrief[] }) {
   const revisions = new Set(items.map((item) => item.git_revision));
   const fingerprints = new Set(items.map((item) => item.fingerprint));
+  const rowLink = useRowLink();
   return (
     <div className="table-wrap">
       <table className="lab-table">
@@ -77,7 +78,7 @@ function History({ items }: { items: BatchBrief[] }) {
         </thead>
         <tbody>
           {items.map((item) => (
-            <tr key={item.id}>
+            <tr key={item.id} {...rowLink(labPath(item.project_id, item.id))}>
               <td><Link to={labPath(item.project_id, item.id)}>{item.name}</Link>{item.template_version ? <div className="muted small">v{item.template_version}</div> : null}</td>
               <td>{item.mode}{!item.independent_inference && <div className="muted small">replay allowed</div>}</td>
               <td><span className={`lab-status ${item.status}`}>{item.status}</span></td>
@@ -146,7 +147,9 @@ function NewExperiment({ projectId }: { projectId: string }) {
   }, [recordings, videoId]);
   useEffect(() => setPlan(null), [mode, projectId, templateId, videoId, repetitions, independent]);
 
-  const ready = Boolean(projectId && videoId && (mode === "learning" || templateId));
+  const recording = recordings.find((item) => item.video_id === videoId);
+  const recordingReady = Boolean(recording?.ready && !recording.missing);
+  const ready = Boolean(projectId && recordingReady && (mode === "learning" || templateId));
   const groundTruth: GroundTruth | undefined = useMemo(
     () => (mode === "verification" ? { expected_verdict: expected || null, step_labels: Object.fromEntries(Object.entries(stepLabels).filter(([, value]) => value)) } : undefined),
     [mode, expected, stepLabels],
@@ -213,7 +216,7 @@ function NewExperiment({ projectId }: { projectId: string }) {
             <span className="small muted">{mode === "verification" ? "Attempt recording" : "Demonstration recording"}</span>
             <select className="field" value={videoId} onChange={(event) => setVideoId(event.target.value)}>
               {recordings.length === 0 && <option value="">No {mode === "verification" ? "attempts" : "demonstrations"} yet</option>}
-              {recordings.map((item) => <option key={item.video_id} value={item.video_id} disabled={!item.ready}>{item.filename} · {item.duration_sec.toFixed(1)}s{item.ready ? "" : " (preparing)"}</option>)}
+              {recordings.map((item) => <option key={item.video_id} value={item.video_id} disabled={!item.ready || item.missing}>{item.filename} · {item.duration_sec.toFixed(1)}s{item.missing ? " (file missing)" : item.ready ? "" : " (preparing)"}</option>)}
             </select>
           </label>
           <label className="stack">
@@ -232,10 +235,7 @@ function NewExperiment({ projectId }: { projectId: string }) {
         {procedure && mode === "verification" && (
           <details className="lab-upload">
             <summary className="small">Upload another attempt to this procedure</summary>
-            <RecordingDrop procedureId={procedure.id} role="execution" prompt="Drag and drop an attempt here or" recordings={[]} onChange={async (created) => {
-              await client.invalidateQueries({ queryKey: ["lab-options"] });
-              if (created) setVideoId(created.video.id);
-            }} />
+            <LabUpload procedureId={procedure.id} onUploaded={setVideoId} />
           </details>
         )}
         <label className="check">
@@ -280,10 +280,40 @@ function NewExperiment({ projectId }: { projectId: string }) {
             </div>
           </div>
         ) : (
-          <button className="btn primary" disabled={!ready || busy}>Review and start</button>
+          <div className="row">
+            <button className="btn primary" disabled={!ready || busy}>Review and start</button>
+            {recording && !recordingReady && <span className="muted small">{recording.missing ? "The selected recording's file is missing." : "Waiting for the selected recording to finish uploading."}</span>}
+          </div>
         )}
       </form>
     </section>
+  );
+}
+
+/** Uploads attempts from the lab. Attempts sent here stay listed, with their preparation progress, until the page is left. */
+function LabUpload({ procedureId, onUploaded }: { procedureId: string; onUploaded: (videoId: string) => void }) {
+  const client = useQueryClient();
+  const [sent, setSent] = useState<string[]>([]);
+  const preparing = (recordings: Recording[] | undefined) => (recordings ?? []).some((item) => sent.includes(item.video.id) && !["ready", "failed"].includes(item.video.ingest_status));
+  const detail = useQuery({
+    queryKey: ["procedure", procedureId],
+    queryFn: () => api.procedure(procedureId),
+    enabled: sent.length > 0,
+    refetchInterval: (query) => (preparing(query.state.data?.recordings) ? 1000 : false),
+  });
+  const mine = (detail.data?.recordings ?? []).filter((item) => sent.includes(item.video.id));
+  const stillPreparing = preparing(detail.data?.recordings);
+  // The recording picker reads lab options; refresh them once preparation ends so the new attempt becomes selectable.
+  useEffect(() => {
+    if (sent.length > 0 && !stillPreparing) void client.invalidateQueries({ queryKey: ["lab-options"] });
+  }, [client, sent.length, stillPreparing]);
+  return (
+    <RecordingDrop procedureId={procedureId} role="execution" prompt="Drag and drop an attempt here or" recordings={mine} onChange={async (created) => {
+      if (created) setSent((current) => [...current, created.video.id]);
+      // Load the new recording before the upload row goes away, so its row takes over without a gap.
+      await Promise.all([client.fetchQuery({ queryKey: ["procedure", procedureId], queryFn: () => api.procedure(procedureId) }), client.invalidateQueries({ queryKey: ["lab-options"] })]);
+      if (created) onUploaded(created.video.id);
+    }} />
   );
 }
 

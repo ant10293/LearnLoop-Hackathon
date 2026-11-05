@@ -415,6 +415,36 @@ def test_export_has_one_row_per_run(slow):
     assert listed[0]["id"] == done["id"] and listed[0]["summary"]["modal_agreement"] == 1.0
 
 
+def test_deleting_an_experiment_removes_its_runs_reports_and_analyses(slow):
+    from app.db import SessionLocal
+    from app.models.reliability import ReliabilityRun
+    from app.models.runs import AnalysisRun
+    from app.models.verification import VerificationRunRow
+
+    client, stub, tmp, gauge = slow
+    procedure, template = _accepted((client, stub, tmp))
+    video = _attempt(client, tmp, procedure)
+    stub.text = CORRECT
+    batch = _batch(client, project_id=procedure, video_id=video, template_id=template["id"], repetitions=2, max_concurrency=1)
+    assert client.delete(f"/api/reliability/batches/{batch['id']}").status_code == 400
+    done = _drive(batch["id"])
+    analyses = [run["analysis_run_id"] for run in done["runs"]]
+    reports = [run["verification_id"] for run in done["runs"]]
+    assert client.delete(f"/api/reliability/batches/{done['id']}").json() == {"deleted": done["id"]}
+    assert client.get(f"/api/reliability/batches/{done['id']}").status_code == 404
+    assert client.get("/api/reliability/batches").json() == []
+    session = SessionLocal()
+    try:
+        assert session.scalars(select(ReliabilityRun).where(ReliabilityRun.batch_id == done["id"])).all() == []
+        assert all(session.get(AnalysisRun, run_id) is None for run_id in analyses)
+        assert all(session.get(VerificationRunRow, report) is None for report in reports)
+    finally:
+        session.close()
+    assert not any((tmp / "runs" / run_id).exists() for run_id in analyses)
+    assert client.get(f"/api/learnloop/procedures/{procedure}").status_code == 200
+    assert client.delete("/api/reliability/batches/missing").status_code == 404
+
+
 # ---------------------------------------------------------------- learning mode
 
 
@@ -583,3 +613,33 @@ def test_options_name_each_version_by_its_demonstration(slow):
     listed = next(item for item in entry["templates"] if item["id"] == template["id"])
     assert listed["source_filename"] == "demo.mp4"
     assert listed["created_at"]
+
+
+# ---------------------------------------------------------------- missing recordings
+
+
+def test_a_referenced_recording_that_was_moved_is_named_not_run(slow, tmp_path):
+    client, stub, tmp, gauge = slow
+    procedure, template = _accepted((client, stub, tmp))
+    source = _video(tmp_path / "elsewhere.mp4", "blue")
+    response = client.post(f"/api/learnloop/procedures/{procedure}/recordings/reference", json={"path": str(source), "role": "execution"})
+    assert response.status_code == 200, response.text
+    video = response.json()["video"]["id"]
+    stub.text = CORRECT
+    batch = _batch(client, project_id=procedure, video_id=video, template_id=template["id"], repetitions=2, max_concurrency=2)
+    source.unlink()
+    calls = gauge.calls
+
+    # Repetitions already queued fail at launch with a plain reason, before any model call.
+    done = _drive(batch["id"])
+    assert gauge.calls == calls
+    for run in done["runs"]:
+        assert run["status"] == "failed" and run["error_kind"] == "missing_recording"
+        assert str(source) in run["error"]
+
+    # A new experiment is refused, and the picker says why.
+    response = client.post("/api/reliability/batches", json={"allow_live": True, "project_id": procedure, "video_id": video, "template_id": template["id"]})
+    assert response.status_code == 400 and str(source) in response.json()["detail"]
+    options = client.get("/api/reliability/options").json()
+    recording = next(item for item in options["procedures"][0]["recordings"] if item["video_id"] == video)
+    assert recording["missing"] is True
