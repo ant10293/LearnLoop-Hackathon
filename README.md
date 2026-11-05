@@ -2,6 +2,8 @@
 
 **Teach a physical workflow once. Check a new attempt against what was learned.**
 
+**Demo video:** [youtu.be/MBAlZAZBJjg](https://youtu.be/MBAlZAZBJjg)
+
 LearnLoop learns a short physical procedure from a recorded demonstration and checks a later recording against it. Meta models propose the procedure and follow each part through the video, a person reviews it, and deterministic code decides each verdict, showing the timestamp and frame behind it.
 
 This repository holds **only work done during the hackathon**. LearnLoop was built on top of a research project the author started before kickoff, [vision-test-bench](https://github.com/ant10293/vision-test-bench). That project is used here as an **external dependency, pinned to its last pre-kickoff commit**, and is never copied into this repository. One script fetches it, applies the hackathon changes stored here, and produces the complete application.
@@ -190,6 +192,8 @@ Between kickoff and 2026-11-02 in vision-test-bench (77 commits), and from 2026-
 Only Meta models run. The provider registry contains the Meta provider plus local test stubs with no model behind them, and the model catalog is filtered to Meta. The `openai` Python package is used only as the HTTP client for Meta's compatible endpoint (`https://api.meta.ai/v1`).
 
 ## Demo
+
+**Demo video:** https://youtu.be/MBAlZAZBJjg
 
 See [docs/DEMO_DISCLOSURE.md](docs/DEMO_DISCLOSURE.md) for the opening disclosure and talking points, and the application's [demo script](overlay/files/docs/DEMO.md) for the step-by-step flow. To browse real results without a key, load the [recorded demo data](#recorded-results-no-api-key-needed). A live demo needs a `MODEL_API_KEY` and your own recordings.
 
