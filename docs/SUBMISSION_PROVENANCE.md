@@ -14,13 +14,14 @@ How this repository was produced, what it contains, and the evidence for each da
 | vision-test-bench `386cba7` imported into LearnLoop (`2babd11`) | 2026-11-02 | LearnLoop history |
 | This repository created | 2026-11-04 20:57 UTC | [evidence/repositories.txt](evidence/repositories.txt) |
 | LearnLoop `7c773c7` pushed (the first audited result) | 2026-11-05 00:31 UTC | LearnLoop activity log |
-| LearnLoop `4dfd2d7` committed (uncertainty range fix for the guided prompt, the audited result) | 2026-11-05 04:36 UTC (commit time) | LearnLoop history |
+| LearnLoop `4dfd2d7` committed (uncertainty range fix for the guided prompt) | 2026-11-05 04:36 UTC (commit time) | LearnLoop history |
+| LearnLoop `00a0340` committed (Meta API called through httpx instead of the `openai` package; unused non-Meta catalog entries removed; the audited result) | 2026-11-05 21:02 UTC (commit time) | LearnLoop history |
 
 Commit timestamps are recorded by the author's machine. The push times above come from GitHub, and they bracket kickoff: `27859ac` was on GitHub 8.5 hours before kickoff, and nothing was pushed between it and kickoff.
 
 ## The baseline
 
-The baseline is vision-test-bench at `27859ac787ae214862488d6348898d012d57353c` (tree `aee613efe64817a55c82179eafe8dc6f94558413`), its last commit before kickoff. Everything after it, including the 77 vision-test-bench commits made during the hackathon between 2026-10-26 and 2026-11-02, is treated as hackathon work and stored in this repository's overlay. The result was compared against LearnLoop `4dfd2d7bdc5b968c24f4375f37caaac2d7f53003` (tree `984bbdc0960bd3ef44b8e5856bce5271c0e22d56`).
+The baseline is vision-test-bench at `27859ac787ae214862488d6348898d012d57353c` (tree `aee613efe64817a55c82179eafe8dc6f94558413`), its last commit before kickoff. Everything after it, including the 77 vision-test-bench commits made during the hackathon between 2026-10-26 and 2026-11-02, is treated as hackathon work and stored in this repository's overlay. The result was compared against LearnLoop `00a03401162de79ce5e4a0ce5acb79134772f581` (tree `6fab946a53184553431ed11f886e9e8f3d580376`).
 
 ## What this repository contains
 

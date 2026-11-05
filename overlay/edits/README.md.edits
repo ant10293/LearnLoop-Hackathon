@@ -1,12 +1,14 @@
 # LearnLoop hackathon edit script v1
 # path: README.md
 # base-sha256: 64306209a27c4f549a571d0b8ed2f9179f8f9551e105a9d60b7ff9e7ac23ba16
-# result-sha256: ed45b70c96b7328edea72de6447bd61cfab7c6b85abd05a8170800f8a63057c0
+# result-sha256: 2b0d7ea84edb4f5130ffc2e64dd078ab1b32835a4e742149d5bdc1a1c9d4f03a
 @@ -1,1 +1,1 @@
 +# LearnLoop
 @@ -3,1 +3,1 @@
 +**Teach a physical workflow once. Check a new attempt against what was learned.**
-@@ -5,1 +5,49 @@
+@@ -5,1 +5,51 @@
++**Demo video:** [youtu.be/MBAlZAZBJjg](https://youtu.be/MBAlZAZBJjg)
++
 +LearnLoop learns a short physical procedure from a recorded demonstration and checks a later recording against it. Meta models propose what happened and follow each part through the video. A person reviews the procedure. Deterministic code decides each verdict and shows the evidence.
 +
 +## The problem
@@ -43,7 +45,7 @@
 +| Second look at an unresolved step | `muse-wonder-1.0` | Meta Responses API, a few frames and one question |
 +| Appearance references for each object | DINOv2 ViT-S/14 (Meta open weights) | Runs locally with frozen weights |
 +
-+No non-Meta model runs in this build. The `openai` Python package is only the HTTP client for Meta's compatible API. OpenCV, NumPy, and ffmpeg handle media and use no AI models.
++No non-Meta model runs in this build. Meta API calls go through a small httpx client (`backend/app/providers/meta_client.py`); no third-party AI SDK is installed. OpenCV, NumPy, and ffmpeg handle media and use no AI models.
 +
 +## Live results
 +
@@ -56,31 +58,31 @@
 +One case, end to end. The demonstration is a 39.6-second head-mounted recording of a Lego motorcycle build. LearnLoop learned 5 steps, and SAM followed all 6 parts. The attempt is a 20.6-second recording that leaves out the small clear stud. The report is **FAIL** on "Attach clear stud", as a missing component that never appears in the attempt. The second look resolved one more step to PASS.
 +
 +Results vary from run to run on the same recording. The same attempt has come back with its middle steps as PASS on one run and CANNOT VERIFY on another. When the evidence is weak, LearnLoop reports CANNOT VERIFY instead of guessing.
-@@ -9,1 +57,1 @@
+@@ -9,1 +59,1 @@
 +Requires Python 3.12, Node 20 or newer, and ffmpeg.
-@@ -12,5 +60,1 @@
+@@ -12,5 +62,1 @@
 +python3.12 -m venv backend/.venv
-@@ -19,1 +63,3 @@
+@@ -19,1 +65,3 @@
 +```bash
 +backend/.venv/bin/pip install -e './backend[dev,perception]'
 +```
-@@ -21,1 +67,1 @@
+@@ -21,1 +69,1 @@
 +Load the DINOv2 weights once, so the first analysis does not download them:
-@@ -23,6 +69,3 @@
+@@ -23,6 +71,3 @@
 +```bash
 +backend/.venv/bin/python -m app.perception.encoder
 +```
-@@ -30,1 +73,3 @@
+@@ -30,1 +75,3 @@
 +```bash
 +npm install --prefix frontend
 +```
-@@ -32,1 +77,3 @@
+@@ -32,1 +79,3 @@
 +```bash
 +scripts/dev.sh
 +```
-@@ -34,1 +81,1 @@
+@@ -34,1 +83,1 @@
 +Open http://127.0.0.1:5180. The API runs on port 8010.
-@@ -36,7 +83,63 @@
+@@ -36,7 +85,63 @@
 +### Live analysis
 +
 +Live calls are off by default. A live analysis needs all three of these, and cached replay needs none of them:

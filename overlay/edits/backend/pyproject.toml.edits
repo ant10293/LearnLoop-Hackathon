@@ -1,7 +1,7 @@
 # LearnLoop hackathon edit script v1
 # path: backend/pyproject.toml
 # base-sha256: 441651ee917bd03a98a13c4505e5a1730eb94042786e2f476b294dcd29002d89
-# result-sha256: 2816fd82efd1264dd9eb96a65a698e631eb67a0ff17eaadf98bdc9a31959deaf
+# result-sha256: 1025b8d08f6f2262c4e49827757a351ec9c7543e7d5aa22f78f846c7aff59941
 @@ -4,1 +4,1 @@
 +description = "Learn a physical procedure from a demonstration and verify the next attempt."
 @@ -6,0 +7,1 @@
@@ -10,12 +10,12 @@
 +  "python-dotenv>=1.0",
 @@ -17,0 +20,1 @@
 +  "certifi>=2024.2.2",
-@@ -20,2 +22,0 @@
-@@ -24,0 +26,5 @@
+@@ -19,3 +21,0 @@
+@@ -24,0 +25,5 @@
 +# DINOv2 appearance references (Meta, frozen weights via torch.hub). Without it, appearance checks report
 +# themselves unavailable and nothing else changes. Fetch weights before a demo: python -m app.perception.encoder
 +perception = [
 +  "torch>=2.4",
 +]
-@@ -30,6 +35,0 @@
-@@ -59,2 +58,0 @@
+@@ -30,6 +34,0 @@
+@@ -59,2 +57,0 @@

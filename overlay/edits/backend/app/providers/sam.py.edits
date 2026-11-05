@@ -1,7 +1,7 @@
 # LearnLoop hackathon edit script v1
 # path: backend/app/providers/sam.py
 # base-sha256: 64498dd667bcf73c46fa44a22ef01d0e0379a928fd6138a62a3c760ac800f443
-# result-sha256: 497d7169961496c9aaeb513848b44c67b2ebd86d0363616a6f3c6f762742f046
+# result-sha256: 73e4f0ef4f0ce0c89ca76d82c9955c448b7d142d3c25278899c487e358789628
 @@ -1,1 +1,1 @@
 +"""SAM 3.1 segmentation and video-tracking adapter.
 @@ -3,2 +3,7 @@
@@ -12,10 +12,11 @@
 +Image segmentation and video tracking are both implemented here. Mask rasters
 +are decoded with meta_sam_parser when that package is installed. A decode
 +failure keeps the raw payload and does not invent a mask.
-@@ -11,1 +16,2 @@
+@@ -11,3 +16,2 @@
 +from dataclasses import dataclass, field
 +from pathlib import Path
-@@ -17,1 +23,11 @@
+@@ -16,2 +20,12 @@
++from app.providers.meta_client import MetaClient
 +from app.providers.types import ProviderError, provider_timeout
 +
 +# Documented model limits. Chunk size is this lab's budget for a reliable short clip,
@@ -27,12 +28,12 @@
 +SUPPORTED_CODECS = frozenset({"h264", "avc", "hevc", "h265", "mpeg4"})
 +SUPPORTED_CONTAINERS = frozenset({"mp4", "mov", "qt"})
 +PROPAGATION_DIRECTIONS = frozenset({"both", "forward", "backward"})
-@@ -22,0 +39,2 @@
+@@ -22,0 +37,2 @@
 +FRAME_MARK_RE = re.compile(r"<\d+f>")
 +TOKEN_RE = re.compile(r"<\|(?:box|point|mask);")
-@@ -32,0 +51,1 @@
+@@ -32,0 +49,1 @@
 +    file_id: str = ""
-@@ -47,0 +67,110 @@
+@@ -47,0 +65,110 @@
 +    mask_height: int = 0
 +    mask_width: int = 0
 +    mask_data: str = ""
@@ -143,21 +144,21 @@
 +    session = session_id.strip() or "session"
 +    raw = str(raw_track_id).strip()
 +    return f"{session}:{raw}"
-@@ -50,0 +180,1 @@
+@@ -50,0 +178,1 @@
 +    """Parse complete frame lines. A partial line yields nothing."""
-@@ -61,0 +192,2 @@
+@@ -61,0 +190,2 @@
 +            if not {"x1", "y1", "x2", "y2", "w", "h"} <= set(fields):
 +                continue
-@@ -64,5 +196,2 @@
+@@ -64,5 +194,2 @@
 +            mask_height, mask_width, encoding, _payload = _mask_parts(data)
 +            confidence = _confidence(fields)
-@@ -79,1 +208,1 @@
+@@ -79,1 +206,1 @@
 +                    confidence=confidence,
-@@ -81,0 +211,3 @@
+@@ -81,0 +209,3 @@
 +                    mask_height=mask_height,
 +                    mask_width=mask_width,
 +                    mask_data=data,
-@@ -86,0 +219,349 @@
+@@ -86,0 +217,349 @@
 +def records_from_chunks(chunks: list[str]) -> list[SamRecord]:
 +    """Parse text that arrives split anywhere, including inside a mask payload."""
 +    buffer = SamLineBuffer()
@@ -409,8 +410,8 @@
 +        self.timeout_s = provider_timeout(timeout_s)
 +        self.model_id = model_id
 +
-+    def _client(self) -> AsyncOpenAI:
-+        return AsyncOpenAI(api_key=self.secret, base_url=META_BASE, timeout=self.timeout_s)
++    def _client(self) -> MetaClient:
++        return MetaClient(self.secret, timeout=self.timeout_s)
 +
 +    async def segment_image(self, image_path, concept: str) -> SamImageResult:
 +        body = image_request(concept, data_url(Path(image_path)), prompt_kind="concept", model=self.model_id)
@@ -507,18 +508,18 @@
 +    return True
 +
 +
-@@ -97,28 +578,3 @@
+@@ -97,28 +576,3 @@
 +def _confidence(fields: dict[str, str]) -> float | None:
 +    raw = fields.get("c")
 +    if raw is None or raw == "":
-@@ -127,9 +583,2 @@
+@@ -127,9 +581,2 @@
 +        value = float(raw)
 +    except ValueError:
-@@ -136,0 +586,3 @@
+@@ -136,0 +584,3 @@
 +    if value < 0 or value > 1:
 +        return None
 +    return value
-@@ -139,2 +591,16 @@
+@@ -139,2 +589,16 @@
 +def _mask_parts(data: str) -> tuple[int, int, str, str]:
 +    """data is H,W,marker+payload. The decoder reads the marker as part of the payload."""
 +    parts = data.split(",", 2)
@@ -535,13 +536,13 @@
 +    marker = rest[0]
 +    encoding = {"!": "one_bit", "~": "lossless"}.get(marker, "unknown")
 +    return height, width, encoding, rest
-@@ -142,3 +607,0 @@
-@@ -146,2 +609,4 @@
+@@ -142,3 +605,0 @@
+@@ -146,2 +607,4 @@
 +def _data_from_payload(record: SamRecord) -> str:
 +    if "data=" not in record.mask_payload:
 +        return ""
 +    return record.mask_payload.split("data=", 1)[-1]
-@@ -149,17 +614,11 @@
+@@ -149,17 +612,11 @@
 +
 +def _check_mark(mark: SpatialMark, width: int, height: int) -> None:
 +    if mark.frame_index < 0:
@@ -553,7 +554,7 @@
 +            raise ProviderError(
 +                f"invalid prompt: box ({mark.x1}, {mark.y1}, {mark.x2}, {mark.y2}) "
 +                f"lies outside the {width}x{height} frame"
-@@ -167,11 +626,8 @@
+@@ -167,11 +624,8 @@
 +        if mark.x2 < mark.x1 or mark.y2 < mark.y1:
 +            raise ProviderError("invalid prompt: a box must have x2 >= x1 and y2 >= y1")
 +        return
@@ -562,7 +563,7 @@
 +    if mark.x < 0 or mark.y < 0 or mark.x >= width or mark.y >= height:
 +        raise ProviderError(
 +            f"invalid prompt: point ({mark.x}, {mark.y}) lies outside the {width}x{height} frame"
-@@ -178,0 +635,53 @@
+@@ -178,0 +633,53 @@
 +
 +
 +def _object_tokens(marks: list[SpatialMark]) -> str:

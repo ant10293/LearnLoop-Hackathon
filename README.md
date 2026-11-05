@@ -12,7 +12,7 @@ This repository holds **only work done during the hackathon**. LearnLoop was bui
 | --- | --- |
 | Hackathon kickoff | 2026-10-26, 12:00 PM ET (16:00 UTC) |
 | External dependency | [`ant10293/vision-test-bench`](https://github.com/ant10293/vision-test-bench) at [`27859ac787ae214862488d6348898d012d57353c`](https://github.com/ant10293/vision-test-bench/commit/27859ac787ae214862488d6348898d012d57353c), pushed to GitHub 2026-10-26 07:29 UTC (03:29 AM ET) |
-| Product repository during development | [`ant10293/LearnLoop`](https://github.com/ant10293/LearnLoop), assembled result identical to [`4dfd2d7bdc5b968c24f4375f37caaac2d7f53003`](https://github.com/ant10293/LearnLoop/commit/4dfd2d7bdc5b968c24f4375f37caaac2d7f53003) |
+| Product repository during development | [`ant10293/LearnLoop`](https://github.com/ant10293/LearnLoop), assembled result identical to [`00a03401162de79ce5e4a0ce5acb79134772f581`](https://github.com/ant10293/LearnLoop/commit/00a03401162de79ce5e4a0ce5acb79134772f581) |
 | This repository | Created 2026-11-04. No Git history from either repository above |
 
 ## Quick start
@@ -117,7 +117,7 @@ docs/
 3. Deletes the 108 files removed during the hackathon, after checking each one's SHA-256. These were research-only modules LearnLoop does not run: non-Meta providers, the research UI, and the tracking, recovery, evaluation, audio and demo-scenario code.
 4. Applies the 67 edit scripts.
 5. Copies in the 71 new files.
-6. Sets file modes and verifies that all 175 files have the recorded SHA-256 and mode, and that no other file exists.
+6. Sets file modes and verifies that all 177 files have the recorded SHA-256 and mode, and that no other file exists.
 7. Moves the result into `build/LearnLoop/`.
 
 ### Why edit scripts instead of ordinary patches
@@ -147,10 +147,10 @@ git diff --no-index --stat build/baseline build/compare/assembled
 
 ### Byte-for-byte validation
 
-[`scripts/compare_with_learnloop.py`](scripts/compare_with_learnloop.py) does not trust the manifest. It assembles a fresh copy, fetches LearnLoop at `4dfd2d7` from GitHub, exports it with `git archive`, and compares every path, byte and executable bit, and cross-checks the file list against `git ls-tree`:
+[`scripts/compare_with_learnloop.py`](scripts/compare_with_learnloop.py) does not trust the manifest. It assembles a fresh copy, fetches LearnLoop at `00a0340` from GitHub, exports it with `git archive`, and compares every path, byte and executable bit, and cross-checks the file list against `git ls-tree`:
 
 ```
-MATCH: 175 files, 1,744,174 bytes identical to LearnLoop 4dfd2d7bdc5b968c24f4375f37caaac2d7f53003 (tree 984bbdc0960bd3ef44b8e5856bce5271c0e22d56)
+MATCH: 177 files, 1,743,652 bytes identical to LearnLoop 00a03401162de79ce5e4a0ce5acb79134772f581 (tree 6fab946a53184553431ed11f886e9e8f3d580376)
 ```
 
 Results on 2026-11-04 (macOS, Python 3.12.2, Node 23.9): byte-for-byte match; Python imports and application startup; Alembic migrations from an empty database to the single head; backend tests 269 passed; `tsc --noEmit` and `vite build` succeeded; frontend tests 52 passed; Playwright smoke test (teach, review, accept, verify, inspect evidence, confirm, export) passed; the home page loaded in a browser with no console errors. A tampered edit script is rejected with `result does not match result-sha256`.
@@ -189,7 +189,7 @@ Between kickoff and 2026-11-02 in vision-test-bench (77 commits), and from 2026-
 | Second look at an unresolved step | `muse-wonder-1.0` | Meta Responses API |
 | Appearance references | DINOv2 ViT-S/14 (Meta open weights) | Local, frozen weights |
 
-Only Meta models run. The provider registry contains the Meta provider plus local test stubs with no model behind them, and the model catalog is filtered to Meta. The `openai` Python package is used only as the HTTP client for Meta's compatible endpoint (`https://api.meta.ai/v1`).
+Only Meta models run. The provider registry contains the Meta provider plus local test stubs with no model behind them, and the model catalog lists only Meta models and the local stubs. Meta calls to `https://api.meta.ai/v1` go through a small httpx client (`backend/app/providers/meta_client.py`); no third-party AI SDK is installed.
 
 ## Demo
 
@@ -209,7 +209,7 @@ See [docs/DEMO_DISCLOSURE.md](docs/DEMO_DISCLOSURE.md) for the opening disclosur
 ## Links
 
 - Pre-existing research project: https://github.com/ant10293/vision-test-bench (pinned: [`27859ac`](https://github.com/ant10293/vision-test-bench/tree/27859ac787ae214862488d6348898d012d57353c))
-- LearnLoop development repository: https://github.com/ant10293/LearnLoop (audited: [`4dfd2d7`](https://github.com/ant10293/LearnLoop/tree/4dfd2d7bdc5b968c24f4375f37caaac2d7f53003))
+- LearnLoop development repository: https://github.com/ant10293/LearnLoop (audited: [`00a0340`](https://github.com/ant10293/LearnLoop/tree/00a03401162de79ce5e4a0ce5acb79134772f581))
 - Provenance details: [docs/SUBMISSION_PROVENANCE.md](docs/SUBMISSION_PROVENANCE.md)
 
 Claude Code (Anthropic) was used as a development tool. No Anthropic model runs in the application.

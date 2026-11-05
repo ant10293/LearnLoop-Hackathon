@@ -1,6 +1,6 @@
 {
   "counts": {
-    "add": 71,
+    "add": 73,
     "delete": 108,
     "edit": 67,
     "keep": 37
@@ -154,7 +154,7 @@
       "base_mode": "100644",
       "base_sha256": "64306209a27c4f549a571d0b8ed2f9179f8f9551e105a9d60b7ff9e7ac23ba16",
       "mode": "100644",
-      "sha256": "ed45b70c96b7328edea72de6447bd61cfab7c6b85abd05a8170800f8a63057c0"
+      "sha256": "2b0d7ea84edb4f5130ffc2e64dd078ab1b32835a4e742149d5bdc1a1c9d4f03a"
     },
     "backend/alembic.ini": {
       "action": "keep",
@@ -532,7 +532,7 @@
       "base_mode": "100644",
       "base_sha256": "e3eebaa91ddb69806e3d8d42432de76a17ca44b81b36d6b775ca0acd8f182118",
       "mode": "100644",
-      "sha256": "6167df5eb04560f9533f35bbaa0677568b262d8b75133aab73b46640edb8e5c1"
+      "sha256": "d6eed63dfc808e59938546957ecf0ce569f13c54c621635b7c87d192ecefb65d"
     },
     "backend/app/providers/common.py": {
       "action": "keep",
@@ -548,17 +548,22 @@
       "mode": "100644",
       "sha256": "e1e20f32e232c87df9982cbfd53f8de90091b6d35c9175648610014751f4394e"
     },
+    "backend/app/providers/meta_client.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "e4dac68af94d8d096c75ebae23dc47a15e6c515da69ed93b672b6842a77390ce"
+    },
     "backend/app/providers/meta_provider.py": {
       "action": "edit",
       "base_mode": "100644",
       "base_sha256": "5867140571472c4b228111b78ebc49cbc0f1f9317382f8ae8358f808f4313783",
       "mode": "100644",
-      "sha256": "ffd0c20b3679ecf9d4b9c48cb81202cf2165b7ffa486a28e5543720a7834d825"
+      "sha256": "a42e692f6a3ab6a99818324b59702e00fae1e65f80863454c4b180077c2c1248"
     },
     "backend/app/providers/model_list.py": {
       "action": "add",
       "mode": "100644",
-      "sha256": "8f2c7f18d15f96546d705c26158117681ad809be0693b9640b83d22da079bf37"
+      "sha256": "5bae9937fcc25ec4d6337d8e7940ccef2c8e3fca1eb88b17fbc949aa7058dd27"
     },
     "backend/app/providers/registry.py": {
       "action": "edit",
@@ -572,7 +577,7 @@
       "base_mode": "100644",
       "base_sha256": "64498dd667bcf73c46fa44a22ef01d0e0379a928fd6138a62a3c760ac800f443",
       "mode": "100644",
-      "sha256": "497d7169961496c9aaeb513848b44c67b2ebd86d0363616a6f3c6f762742f046"
+      "sha256": "73e4f0ef4f0ce0c89ca76d82c9955c448b7d142d3c25278899c487e358789628"
     },
     "backend/app/providers/types.py": {
       "action": "edit",
@@ -835,7 +840,7 @@
       "base_mode": "100644",
       "base_sha256": "441651ee917bd03a98a13c4505e5a1730eb94042786e2f476b294dcd29002d89",
       "mode": "100644",
-      "sha256": "2816fd82efd1264dd9eb96a65a698e631eb67a0ff17eaadf98bdc9a31959deaf"
+      "sha256": "1025b8d08f6f2262c4e49827757a351ec9c7543e7d5aa22f78f846c7aff59941"
     },
     "backend/tests/__init__.py": {
       "action": "keep",
@@ -889,7 +894,7 @@
     "backend/tests/test_manual_models.py": {
       "action": "add",
       "mode": "100644",
-      "sha256": "805087030673a7bb5e198bf6a13fd107cb5b245ff87a875615b3162cc6a39f55"
+      "sha256": "2075793ac2d15aa708f3d7833f273df7dfd747328a967f06fb6e8a64cdff62fb"
     },
     "backend/tests/test_membership.py": {
       "action": "edit",
@@ -897,6 +902,11 @@
       "base_sha256": "b5ce245aef65df7a8510f64cbd91517779c21f4a94cd598cecfb57487dd02256",
       "mode": "100644",
       "sha256": "f432064490bcd2610cc0a767f565428cfcfa9ba4cf13113ee196144e30c6e7a0"
+    },
+    "backend/tests/test_meta_client.py": {
+      "action": "add",
+      "mode": "100644",
+      "sha256": "3a0896360c7e97aa2f6a508868d6155b88a8fb201a6f70f1b7a1f5a5823d8496"
     },
     "backend/tests/test_meta_contracts.py": {
       "action": "add",
@@ -906,7 +916,7 @@
     "backend/tests/test_model_list.py": {
       "action": "add",
       "mode": "100644",
-      "sha256": "dcec7ffc6cf44ac06736635eb35db552b1f203a9d5f58bb327e812f4939eca00"
+      "sha256": "5a838cf64477a7344f9c2b6b50422af9da5b2a898948653f4c690600f712e758"
     },
     "backend/tests/test_multisession.py": {
       "action": "edit",
@@ -1209,10 +1219,10 @@
   },
   "format": 1,
   "reference": {
-    "commit": "4dfd2d7bdc5b968c24f4375f37caaac2d7f53003",
-    "committed": "2026-11-04T22:36:29-06:00",
+    "commit": "00a03401162de79ce5e4a0ce5acb79134772f581",
+    "committed": "2026-11-05T15:02:55-06:00",
     "name": "LearnLoop",
-    "tree": "984bbdc0960bd3ef44b8e5856bce5271c0e22d56",
+    "tree": "6fab946a53184553431ed11f886e9e8f3d580376",
     "url": "https://github.com/ant10293/LearnLoop.git"
   }
 }
