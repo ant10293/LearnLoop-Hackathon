@@ -10,7 +10,7 @@ This repository holds **only work done during the hackathon**. LearnLoop was bui
 | --- | --- |
 | Hackathon kickoff | 2026-10-26, 12:00 PM ET (16:00 UTC) |
 | External dependency | [`ant10293/vision-test-bench`](https://github.com/ant10293/vision-test-bench) at [`27859ac787ae214862488d6348898d012d57353c`](https://github.com/ant10293/vision-test-bench/commit/27859ac787ae214862488d6348898d012d57353c), pushed to GitHub 2026-10-26 07:29 UTC (03:29 AM ET) |
-| Product repository during development | [`ant10293/LearnLoop`](https://github.com/ant10293/LearnLoop), assembled result identical to [`7c773c7e73dda6de67ffb1e97b8049ad47d9e671`](https://github.com/ant10293/LearnLoop/commit/7c773c7e73dda6de67ffb1e97b8049ad47d9e671) |
+| Product repository during development | [`ant10293/LearnLoop`](https://github.com/ant10293/LearnLoop), assembled result identical to [`4dfd2d7bdc5b968c24f4375f37caaac2d7f53003`](https://github.com/ant10293/LearnLoop/commit/4dfd2d7bdc5b968c24f4375f37caaac2d7f53003) |
 | This repository | Created 2026-11-04. No Git history from either repository above |
 
 ## Quick start
@@ -145,10 +145,10 @@ git diff --no-index --stat build/baseline build/compare/assembled
 
 ### Byte-for-byte validation
 
-[`scripts/compare_with_learnloop.py`](scripts/compare_with_learnloop.py) does not trust the manifest. It assembles a fresh copy, fetches LearnLoop at `7c773c7` from GitHub, exports it with `git archive`, and compares every path, byte and executable bit, and cross-checks the file list against `git ls-tree`:
+[`scripts/compare_with_learnloop.py`](scripts/compare_with_learnloop.py) does not trust the manifest. It assembles a fresh copy, fetches LearnLoop at `4dfd2d7` from GitHub, exports it with `git archive`, and compares every path, byte and executable bit, and cross-checks the file list against `git ls-tree`:
 
 ```
-MATCH: 175 files, 1,743,849 bytes identical to LearnLoop 7c773c7e73dda6de67ffb1e97b8049ad47d9e671 (tree 61b986f0bd8d9767a1390215f2ad11aff26325bf)
+MATCH: 175 files, 1,744,174 bytes identical to LearnLoop 4dfd2d7bdc5b968c24f4375f37caaac2d7f53003 (tree 984bbdc0960bd3ef44b8e5856bce5271c0e22d56)
 ```
 
 Results on 2026-11-04 (macOS, Python 3.12.2, Node 23.9): byte-for-byte match; Python imports and application startup; Alembic migrations from an empty database to the single head; backend tests 269 passed; `tsc --noEmit` and `vite build` succeeded; frontend tests 52 passed; Playwright smoke test (teach, review, accept, verify, inspect evidence, confirm, export) passed; the home page loaded in a browser with no console errors. A tampered edit script is rejected with `result does not match result-sha256`.
@@ -205,7 +205,7 @@ See [docs/DEMO_DISCLOSURE.md](docs/DEMO_DISCLOSURE.md) for the opening disclosur
 ## Links
 
 - Pre-existing research project: https://github.com/ant10293/vision-test-bench (pinned: [`27859ac`](https://github.com/ant10293/vision-test-bench/tree/27859ac787ae214862488d6348898d012d57353c))
-- LearnLoop development repository: https://github.com/ant10293/LearnLoop (audited: [`7c773c7`](https://github.com/ant10293/LearnLoop/tree/7c773c7e73dda6de67ffb1e97b8049ad47d9e671))
+- LearnLoop development repository: https://github.com/ant10293/LearnLoop (audited: [`4dfd2d7`](https://github.com/ant10293/LearnLoop/tree/4dfd2d7bdc5b968c24f4375f37caaac2d7f53003))
 - Provenance details: [docs/SUBMISSION_PROVENANCE.md](docs/SUBMISSION_PROVENANCE.md)
 
 Claude Code (Anthropic) was used as a development tool. No Anthropic model runs in the application.
